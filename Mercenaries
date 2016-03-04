@@ -197,6 +197,38 @@ package models
          this.hasGivenOneFreeRecruit = true;
       }
       
+      public function markUpdatesAsChecked() : *
+      {
+         var _loc1_:Mercenary = null;
+         for each(_loc1_ in this.mercenaries)
+         {
+            _loc1_.updateChecked = true;
+         }
+      }
+      
+      public function checkUpdate() : Boolean
+      {
+         var _loc2_:Mercenary = null;
+         var _loc1_:* = false;
+         for each(_loc2_ in this.mercenaries)
+         {
+            if(!_loc2_.hasUpdate && (_loc2_.hasFinishedQuest() || _loc2_.isDead()))
+            {
+               _loc2_.hasUpdate = true;
+               _loc2_.updateChecked = false;
+            }
+            else if(_loc2_.hasUpdate && !_loc2_.hasFinishedQuest() && !_loc2_.isDead())
+            {
+               _loc2_.hasUpdate = false;
+            }
+            if(_loc2_.hasUpdate && !_loc2_.updateChecked)
+            {
+               _loc1_ = true;
+            }
+         }
+         return _loc1_;
+      }
+      
       public function getNewQuests() : Object
       {
          var _loc4_:* = undefined;
