@@ -179,6 +179,7 @@ package models
          _loc2_.lastQuestRewardType = 0;
          _loc2_.lastQuestStartTime = 0;
          _loc2_.lastQuestSuccessChance = 0;
+         _loc1_.checkAchievements();
          return _loc2_;
       }
       
