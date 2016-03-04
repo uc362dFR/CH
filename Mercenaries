@@ -201,11 +201,13 @@ package models
       {
          var _loc4_:* = undefined;
          var _loc5_:* = 0;
-         var _loc6_:Mercenary = null;
-         var _loc7_:* = NaN;
+         var _loc7_:Mercenary = null;
          var _loc8_:* = NaN;
          var _loc9_:* = NaN;
          var _loc10_:* = NaN;
+         var _loc11_:* = NaN;
+         var _loc12_:* = 0;
+         var _loc13_:Object = null;
          if(this.questOptions.hasOwnProperty(0))
          {
             return this.questOptions;
@@ -215,8 +217,8 @@ package models
          var _loc3_:Number = 0;
          for(_loc4_ in this.mercenaries)
          {
-            _loc6_ = this.mercenaries[_loc4_] as Mercenary;
-            if(_loc6_.lastQuestRewardType == 1)
+            _loc7_ = this.mercenaries[_loc4_] as Mercenary;
+            if(_loc7_.lastQuestRewardType == 1)
             {
                _loc3_++;
             }
@@ -234,42 +236,63 @@ package models
             }
             else
             {
-               _loc7_ = this.questRoller.range(1,QUEST_DURATIONS_COUNT);
-               _loc2_[_loc5_]["durationId"] = _loc7_;
-               _loc2_[_loc5_]["successChance"] = questDurations[_loc7_]["successChance"];
-               _loc8_ = this.questRoller.range(2,REWARD_TYPES_COUNT);
-               _loc2_[_loc5_]["rewardType"] = _loc8_;
-               switch(_loc8_)
+               _loc8_ = this.questRoller.range(1,QUEST_DURATIONS_COUNT);
+               _loc2_[_loc5_]["durationId"] = _loc8_;
+               _loc2_[_loc5_]["successChance"] = questDurations[_loc8_]["successChance"];
+               _loc9_ = this.questRoller.range(2,REWARD_TYPES_COUNT);
+               _loc2_[_loc5_]["rewardType"] = _loc9_;
+               switch(_loc9_)
                {
                   case 2:
-                     _loc9_ = 0;
-                     _loc10_ = 24;
+                     _loc10_ = 0;
+                     _loc11_ = 24;
                      break;
                   case 3:
-                     _loc9_ = 0.1 * _loc1_.getPurchaseAscensionHeroSouls();
+                     _loc10_ = 0.1 * _loc1_.getPurchaseAscensionHeroSouls();
                      break;
                   case 4:
-                     _loc9_ = 1;
+                     _loc10_ = 1;
                      break;
                   case 5:
-                     _loc9_ = 1;
+                     _loc10_ = 1;
                      break;
                   case 6:
-                     _loc9_ = 1;
+                     _loc10_ = 1;
                      if((CurrentUser.instance as UserData).isMobile)
                      {
-                        _loc9_ = _loc9_ * 10;
+                        _loc10_ = _loc10_ * 10;
                      }
                      break;
                }
-               if(_loc8_ == 2)
+               if(_loc9_ == 2)
                {
-                  _loc2_[_loc5_]["rewardQty"] = _loc10_ * questDurations[_loc7_]["duration"] / 86400 * questDurations[_loc7_]["durationBonus"];
+                  _loc2_[_loc5_]["rewardQty"] = _loc11_ * questDurations[_loc8_]["duration"] / 86400 * questDurations[_loc8_]["durationBonus"];
                }
                else
                {
-                  _loc2_[_loc5_]["rewardQty"] = _loc9_ * questDurations[_loc7_]["duration"] / 86400 * questDurations[_loc7_]["durationBonus"];
+                  _loc2_[_loc5_]["rewardQty"] = _loc10_ * questDurations[_loc8_]["duration"] / 86400 * questDurations[_loc8_]["durationBonus"];
                }
+            }
+            _loc5_++;
+         }
+         var _loc6_:* = 0;
+         if(_loc2_[_loc6_]["rewardType"] == 1)
+         {
+            _loc6_ = 1;
+         }
+         _loc5_ = _loc6_;
+         while(_loc5_ < 4)
+         {
+            _loc12_ = _loc6_;
+            while(_loc12_ < 4)
+            {
+               if(_loc2_[_loc5_]["durationId"] < _loc2_[_loc12_]["durationId"])
+               {
+                  _loc13_ = _loc2_[_loc5_];
+                  _loc2_[_loc5_] = _loc2_[_loc12_];
+                  _loc2_[_loc12_] = _loc13_;
+               }
+               _loc12_++;
             }
             _loc5_++;
          }
