@@ -147,6 +147,8 @@ package models
          {
             _loc1_.statId = this.mercRoller.range(1,Mercenary.STATS_COUNT);
          }
+         _loc1_.roller = new Random();
+         _loc1_.roller.srand((this.mercRoller.rand() + 1) % Random.RAND_MAX);
          var _loc6_:* = 0;
          while(_loc6_ < 5)
          {
@@ -154,24 +156,6 @@ package models
             {
                _loc1_.slotId = _loc6_;
                this.mercenaries[_loc6_] = _loc1_;
-               switch(_loc6_)
-               {
-                  case 0:
-                     _loc1_.roller = this.slot0Roller;
-                     break;
-                  case 1:
-                     _loc1_.roller = this.slot1Roller;
-                     break;
-                  case 2:
-                     _loc1_.roller = this.slot2Roller;
-                     break;
-                  case 3:
-                     _loc1_.roller = this.slot3Roller;
-                     break;
-                  case 4:
-                     _loc1_.roller = this.slot4Roller;
-                     break;
-               }
                break;
             }
             _loc6_++;
