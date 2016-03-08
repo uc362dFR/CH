@@ -351,10 +351,10 @@ package models
          94:"Jane",
          95:"Madison",
          96:"Lori",
-         97:"Tiffany",
-         98:"Kathy",
-         99:"Tammy",
-         100:"Kayla"
+         97:"Gigi",
+         98:"Snarfy",
+         99:"Munchky",
+         100:"Chobi"
       };
       
       public static const START_QUIPS_COUNT:int = 15;
@@ -370,7 +370,7 @@ package models
          8:"This path looks kinda safe...",
          9:"I hope I didn\'t leave the oven on...",
          10:"You got it, boss.",
-         11:"My life for Auir!",
+         11:"My life for Aiur!",
          12:"Work work.",
          13:"Zug Zug.",
          14:"I\'ll make you proud, boss.",
@@ -492,21 +492,21 @@ package models
       public function finishQuest() : Object
       {
          var _loc2_:* = NaN;
-         var _loc5_:BigDecimal = null;
-         var _loc6_:* = NaN;
+         var _loc6_:BigDecimal = null;
          var _loc7_:* = NaN;
          var _loc8_:* = NaN;
          var _loc9_:* = NaN;
-         var _loc10_:Object = null;
-         var _loc11_:* = NaN;
+         var _loc10_:* = NaN;
+         var _loc11_:Object = null;
          var _loc12_:* = NaN;
          var _loc13_:* = NaN;
          var _loc14_:* = NaN;
          var _loc15_:* = NaN;
          var _loc16_:* = NaN;
-         var _loc17_:* = 0;
+         var _loc17_:* = NaN;
          var _loc18_:* = 0;
-         var _loc19_:Object = null;
+         var _loc19_:* = 0;
+         var _loc20_:Object = null;
          var _loc1_:UserData = CurrentUser.instance as UserData;
          var _loc3_:Object = {
             "description":"",
@@ -520,16 +520,16 @@ package models
                _loc3_.description = _("+%s %s",1,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
                break;
             case 2:
-               _loc5_ = this.getTotalGoldReward(this.lastQuestGoldRewardQty);
-               _loc1_.addGold(_loc5_);
-               _loc3_.description = _("+%s %s",BigNumberFormatter.shortenNumber(_loc5_),Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               _loc6_ = this.getTotalGoldReward(this.lastQuestGoldRewardQty);
+               _loc1_.addGold(_loc6_);
+               _loc3_.description = _("+%s %s",BigNumberFormatter.shortenNumber(_loc6_),Mercenaries.rewardTypes[this.lastQuestRewardType].description);
                break;
             case 3:
-               _loc6_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
-               _loc7_ = Math.floor(_loc6_);
-               _loc8_ = _loc6_ - _loc7_;
-               _loc2_ = _loc7_;
-               if(this.roller.randFloat() < _loc8_)
+               _loc7_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               _loc8_ = Math.floor(_loc7_);
+               _loc9_ = _loc7_ - _loc8_;
+               _loc2_ = _loc8_;
+               if(this.roller.randFloat() < _loc9_)
                {
                   _loc2_++;
                }
@@ -541,56 +541,56 @@ package models
                _loc3_.description = _("+%s %s",_loc2_,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
                break;
             case 4:
-               _loc9_ = 0;
+               _loc10_ = 0;
                _loc2_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
                while(_loc2_ > 1)
                {
                   _loc1_.items.buyAscensionItem();
                   _loc2_--;
-                  _loc9_++;
+                  _loc10_++;
                }
                if(this.roller.randFloat() < _loc2_)
                {
                   _loc1_.items.buyAscensionItem();
-                  _loc9_++;
+                  _loc10_++;
                }
-               _loc3_.description = _("+%s %s",_loc9_,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
-               _loc4_ = _loc9_ > 0;
+               _loc3_.description = _("+%s %s",_loc10_,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               _loc4_ = _loc10_ > 0;
                break;
             case 5:
-               _loc10_ = {};
-               _loc17_ = 1;
-               while(_loc17_ <= 9)
+               _loc11_ = {};
+               _loc18_ = 1;
+               while(_loc18_ <= 9)
                {
-                  _loc10_[_loc17_] = 1;
-                  _loc17_++;
+                  _loc11_[_loc18_] = 1;
+                  _loc18_++;
                }
-               _loc11_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
-               _loc12_ = Math.floor(_loc11_);
-               _loc13_ = _loc11_ - _loc12_;
-               _loc2_ = _loc12_;
-               if(this.roller.randFloat() < _loc13_)
+               _loc12_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               _loc13_ = Math.floor(_loc12_);
+               _loc14_ = _loc12_ - _loc13_;
+               _loc2_ = _loc13_;
+               if(this.roller.randFloat() < _loc14_)
                {
                   _loc2_++;
                }
-               _loc17_ = 0;
-               while(_loc17_ < _loc2_)
+               _loc18_ = 0;
+               while(_loc18_ < _loc2_)
                {
-                  _loc18_ = this.roller.weightedChoice(_loc10_);
-                  _loc10_[_loc18_] = 0;
-                  _loc19_ = ActionBar.skills[_loc18_];
-                  _loc1_.actionBar.onSkillClick(_loc18_,false);
-                  _loc17_++;
+                  _loc19_ = this.roller.weightedChoice(_loc11_);
+                  _loc11_[_loc19_] = 0;
+                  _loc20_ = ActionBar.skills[_loc19_];
+                  _loc1_.actionBar.onSkillClick(_loc19_,false);
+                  _loc18_++;
                }
                _loc3_.description = _("Random Skill Activation!");
                _loc4_ = _loc2_ > 0;
                break;
             case 6:
-               _loc14_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
-               _loc15_ = Math.floor(_loc14_);
-               _loc16_ = _loc14_ - _loc15_;
-               _loc2_ = _loc15_;
-               if(this.roller.randFloat() < _loc16_)
+               _loc15_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               _loc16_ = Math.floor(_loc15_);
+               _loc17_ = _loc15_ - _loc16_;
+               _loc2_ = _loc16_;
+               if(this.roller.randFloat() < _loc17_)
                {
                   _loc2_++;
                }
@@ -599,13 +599,22 @@ package models
                _loc4_ = _loc2_ > 0;
                break;
          }
-			this.experience = this.experience + this.lastQuestDuration / 86400;
-			while(this.experience > 0.99)
-			{
-				this.experience = this.experience - 1;
-				this.level++;
-				_loc3_.leveled = true;
-			}
+         var _loc5_:Number = this.lastQuestDuration / 86400;
+         if(_loc5_ <= 1800 / 86400 && this.lastQuestRewardType == 1)
+         {
+            _loc5_ = 1800 / 86400;
+         }
+         if(_loc5_ < 0)
+         {
+            _loc5_ = 0;
+         }
+         this.experience = this.experience + _loc5_;
+         while(this.experience > 0.99)
+         {
+            this.experience = this.experience - 1;
+            this.level++;
+            _loc3_.leveled = true;
+         }
          _loc3_.gotSomething = _loc4_;
          this.lastQuestDuration = 0;
          this.lastQuestGoldRewardQty = 0;
@@ -664,6 +673,7 @@ package models
          {
             this.lastQuestDuration = param4;
          }
+         this.lastQuestDuration = Math.max(1,this.lastQuestDuration);
          this.lastQuestSuccessChance = param5;
          this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp;
          var _loc7_:* = this.roller.randFloat() > this.lastQuestSuccessChance;
