@@ -1,0 +1,864 @@
+package models
+{
+   import com.playsaurus.model.Model;
+   import com.playsaurus.random.Random;
+   import com.bigDecimal.com.BigDecimal;
+   import com.playsaurus.utils.CurrentUser;
+   import it.sephiroth.gettext._;
+   import com.playsaurus.managers.BigNumberFormatter;
+   import com.playsaurus.utils.ServerTimeKeeper;
+   import com.doogog.utils.MathUtils;
+   import com.playsaurus.utils.StringFormatter;
+   
+   public class Mercenary extends Model
+   {
+      
+      public static const RARITIES_COUNT:Number = 8;
+      
+      public static const rarities:Object = {
+         1:{
+            "name":"Common",
+            "multiplier":0.5,
+            "chance":5000,
+            "color":"#DDDDDD",
+            "bgColor":6908265
+         },
+         2:{
+            "name":"Uncommon",
+            "multiplier":0.75,
+            "chance":2000,
+            "color":"#1EFF00",
+            "bgColor":946432
+         },
+         3:{
+            "name":"Rare",
+            "multiplier":1,
+            "chance":800,
+            "color":"#0080FF",
+            "bgColor":21930
+         },
+         4:{
+            "name":"Epic",
+            "multiplier":2,
+            "chance":300,
+            "color":"#B048F8",
+            "bgColor":9046497
+         },
+         5:{
+            "name":"Fabled",
+            "multiplier":5,
+            "chance":100,
+            "color":"#77FF77",
+            "bgColor":52224
+         },
+         6:{
+            "name":"Mythical",
+            "multiplier":20,
+            "chance":25,
+            "color":"#BBBBFF",
+            "bgColor":7303167
+         },
+         7:{
+            "name":"Legendary",
+            "multiplier":50,
+            "chance":8,
+            "color":"#FFFF00",
+            "bgColor":14540032
+         },
+         8:{
+            "name":"Transcendent",
+            "multiplier":200,
+            "chance":1,
+            "color":"#FF00FF",
+            "bgColor":12517567
+         }
+      };
+      
+      public static const titles:Object = {
+         1:{"name":"Noob"},
+         2:{"name":"Rookie"},
+         3:{"name":"Journeyman"},
+         4:{"name":"Expert"},
+         5:{"name":"Master"},
+         6:{"name":"Grandmaster"},
+         7:{"name":"Legend"},
+         8:{"name":"Demigod"}
+      };
+      
+      public static const BONUS_GOLD:Number = 1;
+      
+      public static const BONUS_SOULS:Number = 2;
+      
+      public static const BONUS_RUBIES:Number = 3;
+      
+      public static const BONUS_SKILLS:Number = 4;
+      
+      public static const BONUS_SUCCESS_RATE:Number = 5;
+      
+      public static const BONUS_RECRUITMENT_SPEED:Number = 6;
+      
+      public static const ASSET_TYPES:Number = 15;
+      
+      public static const STATS_COUNT:Number = 6;
+      
+      public static const stats:Object = {
+         1:{
+            "description":"+%s% gold from quests",
+            "baseValue":0.1
+         },
+         2:{
+            "description":"+%s% hero souls from quests",
+            "baseValue":0.1
+         },
+         3:{
+            "description":"+%s% rubies from quests",
+            "baseValue":0.1
+         },
+         4:{
+            "description":"+%s% skills activated by quests",
+            "baseValue":0.1
+         },
+         5:{
+            "description":"+%s% success rate on quests",
+            "baseValue":0.1
+         },
+         6:{
+            "description":"-%s% time on recruitment quests",
+            "baseValue":0.1
+         }
+      };
+      
+      public static const DEATH_PHRASES_COUNT:Number = 16;
+      
+      public static const deathPhrases:Object = {
+         1:"Eaten by a grue.",
+         2:"Bit the dust.",
+         3:"Kicked the bucket.",
+         4:"Bought the farm.",
+         5:"Went to a better place.",
+         6:"On permanent VACation.",
+         7:"Paid the piper.",
+         8:"Was immortality-challenged.",
+         9:"Is now room temperature.",
+         10:"\"Ascended.\"",
+         11:"Forgot to bring water.",
+         12:"Ate bad food.",
+         13:"Had an unfortunate fall.",
+         14:"Got dysentery.",
+         15:"Encountered an Immortal.",
+         16:"Bae caught me slippin\'."
+      };
+      
+      public static const NAMES_COUNT:Number = 100;
+      
+      public static const maleNames:Object = {
+         1:"James",
+         2:"John",
+         3:"Robert",
+         4:"Michael",
+         5:"William",
+         6:"David",
+         7:"Richard",
+         8:"Joseph",
+         9:"Charles",
+         10:"Thomas",
+         11:"Christopher",
+         12:"Daniel",
+         13:"Matthew",
+         14:"Donald",
+         15:"Anthony",
+         16:"Mark",
+         17:"Paul",
+         18:"Steven",
+         19:"George",
+         20:"Kenneth",
+         21:"Andrew",
+         22:"Edward",
+         23:"Joshua",
+         24:"Brian",
+         25:"Kevin",
+         26:"Ronald",
+         27:"Timothy",
+         28:"Jason",
+         29:"Jeffrey",
+         30:"Ryan",
+         31:"Gary",
+         32:"Nicholas",
+         33:"Eric",
+         34:"Jacob",
+         35:"Stephen",
+         36:"Jonathan",
+         37:"Larry",
+         38:"Frank",
+         39:"Scott",
+         40:"Justin",
+         41:"Brandon",
+         42:"Raymond",
+         43:"Gregory",
+         44:"Samuel",
+         45:"Benjamin",
+         46:"Patrick",
+         47:"Jack",
+         48:"Dennis",
+         49:"Alexander",
+         50:"Jerry",
+         51:"Tyler",
+         52:"Henry",
+         53:"Douglas",
+         54:"Aaron",
+         55:"Peter",
+         56:"Jose",
+         57:"Walter",
+         58:"Adam",
+         59:"Zachary",
+         60:"Nathan",
+         61:"Harold",
+         62:"Kyle",
+         63:"Carl",
+         64:"Arthur",
+         65:"Gerald",
+         66:"Roger",
+         67:"Keith",
+         68:"Lawrence",
+         69:"Jeremy",
+         70:"Terry",
+         71:"Albert",
+         72:"Joe",
+         73:"Sean",
+         74:"Willie",
+         75:"Christian",
+         76:"Jesse",
+         77:"Austin",
+         78:"Billy",
+         79:"Bruce",
+         80:"Ralph",
+         81:"Bryan",
+         82:"Ethan",
+         83:"Roy",
+         84:"Eugene",
+         85:"Nosfrat",
+         86:"Louis",
+         87:"Link",
+         88:"Voldemort",
+         89:"Harry",
+         90:"Pasha",
+         91:"Sufail",
+         92:"Tiny",
+         93:"McNiiby",
+         94:"Sparky",
+         95:"Nazta",
+         96:"Jayeeyee",
+         97:"Arteecee?",
+         98:"Dogmeat",
+         99:"EyesFrod",
+         100:"Leeroy Jenkins"
+      };
+      
+      public static const femaleNames:Object = {
+         1:"Mary",
+         2:"Patricia",
+         3:"Jennifer",
+         4:"Elizabeth",
+         5:"Linda",
+         6:"Barbara",
+         7:"Susan",
+         8:"Margaret",
+         9:"Jessica",
+         10:"Sarah",
+         11:"Dorothy",
+         12:"Karen",
+         13:"Nancy",
+         14:"Betty",
+         15:"Lisa",
+         16:"Hermione",
+         17:"Ashley",
+         18:"Samus",
+         19:"Zelda",
+         20:"Helen",
+         21:"Carol",
+         22:"Michelle",
+         23:"Emily",
+         24:"Amanda",
+         25:"Melissa",
+         26:"Deborah",
+         27:"Laura",
+         28:"Stephanie",
+         29:"Rebecca",
+         30:"Sharon",
+         31:"Cynthia",
+         32:"Kathleen",
+         33:"Anna",
+         34:"Shirley",
+         35:"Ruth",
+         36:"Amy",
+         37:"Angela",
+         38:"Brenda",
+         39:"Virginia",
+         40:"Pamela",
+         41:"Catherine",
+         42:"Katherine",
+         43:"Nicole",
+         44:"Christine",
+         45:"Samantha",
+         46:"Janet",
+         47:"Debra",
+         48:"Carolyn",
+         49:"Rachel",
+         50:"Heather",
+         51:"Maria",
+         52:"Diane",
+         53:"Julie",
+         54:"Joyce",
+         55:"Emma",
+         56:"Frances",
+         57:"Evelyn",
+         58:"Joan",
+         59:"Martha",
+         60:"Christina",
+         61:"Kelly",
+         62:"Lauren",
+         63:"Victoria",
+         64:"Judith",
+         65:"Alice",
+         66:"Ann",
+         67:"Cheryl",
+         68:"Jean",
+         69:"Doris",
+         70:"Megan",
+         71:"Marie",
+         72:"Andrea",
+         73:"Kathryn",
+         74:"Jacqueline",
+         75:"Gloria",
+         76:"Teresa",
+         77:"Sara",
+         78:"Janice",
+         79:"Hannah",
+         80:"Julia",
+         81:"Rose",
+         82:"Theresa",
+         83:"Grace",
+         84:"Judy",
+         85:"Beverly",
+         86:"Olivia",
+         87:"Denise",
+         88:"Marilyn",
+         89:"Amber",
+         90:"Danielle",
+         91:"Brittany",
+         92:"Diana",
+         93:"Mildred",
+         94:"Jane",
+         95:"Madison",
+         96:"Lori",
+         97:"Tiffany",
+         98:"Kathy",
+         99:"Tammy",
+         100:"Kayla"
+      };
+      
+      public static const START_QUIPS_COUNT:int = 15;
+      
+      public static const startQuips:Object = {
+         1:"I\'m off to work!",
+         2:"I hope I don\'t die...",
+         3:"Valar Morghulis.",
+         4:"Let\'s go!",
+         5:"This forest looks kinda dark.",
+         6:"Time to quest!",
+         7:"Come back later and see what I got!",
+         8:"This path looks kinda safe...",
+         9:"I hope I didn\'t leave the oven on...",
+         10:"You got it, boss.",
+         11:"My life for Auir!",
+         12:"Work work.",
+         13:"Zug Zug.",
+         14:"I\'ll make you proud, boss.",
+         15:"Brb."
+      };
+      
+      public static const CREATION_QUIPS_COUNT:int = 7;
+      
+      public static const creationQuips:Object = {
+         1:"I\'m ready for action!",
+         2:"I\'m here!",
+         3:"What chu wan do?",
+         4:"I\'m ready for adventures!",
+         5:"Put in me coach!",
+         6:"What do you need, Boss?",
+         7:"Rise and shine!"
+      };
+      
+      public static const REVIVE_QUIPS_COUNT:int = 12;
+      
+      public static const reviveQuips:Object = {
+         1:"I\'m un-vincible!",
+         2:"What is dead may never die.",
+         3:"Not today.",
+         4:"Thanks, boss!",
+         5:"I thought I was dead!",
+         6:"Am I getting sent out again...",
+         7:"Valar dohaeris.",
+         8:"I\'m back, baby!",
+         9:"The man can\'t keep me down!",
+         10:"It was so dark down there!",
+         11:"You won\'t regret it, boss!",
+         12:"Phew, that was close!"
+      };
+      
+      public static const COMPLETE_QUIPS_COUNT:int = 11;
+      
+      public static const completeQuips:Object = {
+         1:"I made it!",
+         2:"I\'m still alive!",
+         3:"Phew, that was hard!",
+         4:"Donezo!",
+         5:"Am I missing any limbs?",
+         6:"I hope I didn\'t leave anything behind.",
+         7:"Mission accomplished.",
+         8:"Great success!",
+         9:"Task complete.",
+         10:"It\'s a hard knock life.",
+         11:"I\'m the best!"
+      };
+       
+      public var name:String;
+      
+      public var level:Number;
+      
+      public var rarity:Number;
+      
+      public var statId:Number;
+      
+      public var assetId:Number;
+      
+      public var phrase1:String;
+      
+      public var phrase2:String;
+      
+      public var slotId:Number;
+      
+      public var lastQuestStartTime:Number;
+      
+      public var lastQuestDuration:Number;
+      
+      public var lastQuestRewardType:Number;
+      
+      public var lastQuestRewardQty:Number;
+      
+      public var lastQuestGoldRewardQty:Number;
+      
+      public var lastQuestSuccessChance:Number;
+      
+      public var questResult:Number;
+      
+      public var experience:Number;
+      
+      public var roller:Random;
+      
+      public var createTime:Number;
+      
+      public var creationQuipped:Boolean;
+      
+      public function Mercenary()
+      {
+         super();
+         this.registerDynamicString("name");
+         this.registerDynamicNumber("level");
+         this.registerDynamicNumber("rarity");
+         this.registerDynamicNumber("statId");
+         this.registerDynamicNumber("assetId");
+         this.registerDynamicString("phrase1");
+         this.registerDynamicString("phrase2");
+         this.registerDynamicNumber("slotId");
+         this.registerDynamicNumber("lastQuestStartTime");
+         this.registerDynamicNumber("lastQuestDuration");
+         this.registerDynamicNumber("lastQuestRewardType");
+         this.registerDynamicNumber("lastQuestRewardQty");
+         this.registerDynamicNumber("lastQuestGoldRewardQty");
+         this.registerDynamicNumber("lastQuestSuccessChance");
+         this.registerDynamicNumber("questResult");
+         this.registerDynamicChild("roller",Random);
+         this.registerDynamicNumber("experience");
+         this.registerDynamicBoolean("createTime");
+         this.registerDynamicBoolean("creationQuipped");
+      }
+      
+      public function getDeathTime() : Number
+      {
+         return this.questResult;
+      }
+      
+      public function finishQuest() : Object
+      {
+         var _loc2_:* = NaN;
+         var _loc5_:BigDecimal = null;
+         var _loc6_:* = NaN;
+         var _loc7_:* = NaN;
+         var _loc8_:* = NaN;
+         var _loc9_:* = NaN;
+         var _loc10_:Object = null;
+         var _loc11_:* = NaN;
+         var _loc12_:* = NaN;
+         var _loc13_:* = NaN;
+         var _loc14_:* = NaN;
+         var _loc15_:* = NaN;
+         var _loc16_:* = NaN;
+         var _loc17_:* = 0;
+         var _loc18_:* = 0;
+         var _loc19_:Object = null;
+         var _loc1_:UserData = CurrentUser.instance as UserData;
+         var _loc3_:Object = {
+            "description":"",
+            "leveled":false
+         };
+         var _loc4_:* = true;
+         switch(this.lastQuestRewardType)
+         {
+            case 1:
+               _loc1_.mercenaries.addRandomMercenary();
+               _loc3_.description = _("+%s %s",1,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               break;
+            case 2:
+               _loc5_ = this.getTotalGoldReward(this.lastQuestGoldRewardQty);
+               _loc1_.addGold(_loc5_);
+               _loc3_.description = _("+%s %s",BigNumberFormatter.shortenNumber(_loc5_),Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               break;
+            case 3:
+               _loc6_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               _loc7_ = Math.floor(_loc6_);
+               _loc8_ = _loc6_ - _loc7_;
+               _loc2_ = _loc7_;
+               if(this.roller.randFloat() < _loc8_)
+               {
+                  _loc2_++;
+               }
+               if(_loc2_ >= 1)
+               {
+                  _loc1_.addSouls(_loc2_);
+               }
+               _loc4_ = _loc2_ > 0;
+               _loc3_.description = _("+%s %s",_loc2_,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               break;
+            case 4:
+               _loc9_ = 0;
+               _loc2_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               while(_loc2_ > 1)
+               {
+                  _loc1_.items.buyAscensionItem();
+                  _loc2_--;
+                  _loc9_++;
+               }
+               if(this.roller.randFloat() < _loc2_)
+               {
+                  _loc1_.items.buyAscensionItem();
+                  _loc9_++;
+               }
+               _loc3_.description = _("+%s %s",_loc9_,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               _loc4_ = _loc9_ > 0;
+               break;
+            case 5:
+               _loc10_ = {};
+               _loc17_ = 1;
+               while(_loc17_ <= 9)
+               {
+                  _loc10_[_loc17_] = 1;
+                  _loc17_++;
+               }
+               _loc11_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               _loc12_ = Math.floor(_loc11_);
+               _loc13_ = _loc11_ - _loc12_;
+               _loc2_ = _loc12_;
+               if(this.roller.randFloat() < _loc13_)
+               {
+                  _loc2_++;
+               }
+               _loc17_ = 0;
+               while(_loc17_ < _loc2_)
+               {
+                  _loc18_ = this.roller.weightedChoice(_loc10_);
+                  _loc10_[_loc18_] = 0;
+                  _loc19_ = ActionBar.skills[_loc18_];
+                  _loc1_.actionBar.onSkillClick(_loc18_,false);
+                  _loc17_++;
+               }
+               _loc3_.description = _("Random Skill Activation!");
+               _loc4_ = _loc2_ > 0;
+               break;
+            case 6:
+               _loc14_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
+               _loc15_ = Math.floor(_loc14_);
+               _loc16_ = _loc14_ - _loc15_;
+               _loc2_ = _loc15_;
+               if(this.roller.randFloat() < _loc16_)
+               {
+                  _loc2_++;
+               }
+               _loc1_.addRubies(_loc2_,"mercenary_reward",0);
+               _loc3_.description = _("+%s %s",_loc2_,Mercenaries.rewardTypes[this.lastQuestRewardType].description);
+               _loc4_ = _loc2_ > 0;
+               break;
+         }
+			this.experience = this.experience + this.lastQuestDuration / 86400;
+			while(this.experience > 0.99)
+			{
+				this.experience = this.experience - 1;
+				this.level++;
+				_loc3_.leveled = true;
+			}
+         _loc3_.gotSomething = _loc4_;
+         this.lastQuestDuration = 0;
+         this.lastQuestGoldRewardQty = 0;
+         this.lastQuestRewardQty = 0;
+         this.lastQuestRewardType = 0;
+         this.lastQuestStartTime = 0;
+         this.lastQuestSuccessChance = 0;
+         this.questResult = 0;
+         return _loc3_;
+      }
+      
+      public function getReviveCost() : Number
+      {
+         return Math.ceil(Math.pow(1.5,this.level) + 10);
+      }
+      
+      public function revive() : void
+      {
+         this.lastQuestDuration = 0;
+         this.lastQuestGoldRewardQty = 0;
+         this.lastQuestRewardQty = 0;
+         this.lastQuestRewardType = 0;
+         this.lastQuestStartTime = 0;
+         this.lastQuestSuccessChance = 0;
+         this.questResult = 0;
+      }
+      
+      public function canFinishQuest() : Boolean
+      {
+         var _loc1_:* = ServerTimeKeeper.instance.timestamp;
+         if(_loc1_ > this.lastQuestStartTime + this.lastQuestDuration && this.getDeathTime() == 0)
+         {
+            return true;
+         }
+         return false;
+      }
+      
+      public function startQuest(param1:Number, param2:Number, param3:Number, param4:Number, param5:Number) : void
+      {
+         var _loc6_:UserData = CurrentUser.instance as UserData;
+         this.lastQuestRewardType = param1;
+         this.lastQuestGoldRewardQty = param3;
+         this.lastQuestRewardQty = param2;
+         if(param1 == 1)
+         {
+            if(this.statId == BONUS_RECRUITMENT_SPEED)
+            {
+               this.lastQuestDuration = param4 * (1 - stats[BONUS_SKILLS]["baseValue"] * rarities[this.rarity]["multiplier"]);
+            }
+            else
+            {
+               this.lastQuestDuration = param4;
+            }
+         }
+         else
+         {
+            this.lastQuestDuration = param4;
+         }
+         this.lastQuestSuccessChance = param5;
+         this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp;
+         var _loc7_:* = this.roller.randFloat() > this.lastQuestSuccessChance;
+         if(_loc7_)
+         {
+            this.questResult = this.roller.range(1,this.lastQuestDuration);
+         }
+         else
+         {
+            this.questResult = 0;
+         }
+         _loc6_.mercenaries.questOptions = {};
+      }
+      
+      public function canStartQuest() : Boolean
+      {
+         if(this.lastQuestDuration == 0)
+         {
+            return true;
+         }
+         return false;
+      }
+      
+      public function getBonusSkills() : Number
+      {
+         return 0;
+      }
+      
+      public function getTotalReward(param1:Number, param2:Number) : Number
+      {
+         var _loc3_:Number = param2 * this.level;
+         switch(param1)
+         {
+            case 1:
+               _loc3_ = 1;
+               break;
+            case 2:
+               _loc3_ = 0;
+               break;
+            case 3:
+               if(this.statId == BONUS_SOULS)
+               {
+                  _loc3_ = _loc3_ * (1 + stats[BONUS_SOULS]["baseValue"] * rarities[this.rarity]["multiplier"]);
+               }
+               break;
+            case 4:
+               break;
+            case 5:
+               _loc3_ = _loc3_ * (1 + stats[BONUS_SKILLS]["baseValue"] * rarities[this.rarity]["multiplier"]);
+               _loc3_ = Math.min(9,_loc3_);
+               break;
+            case 6:
+               if(this.statId == BONUS_RUBIES)
+               {
+                  _loc3_ = _loc3_ * (1 + stats[BONUS_RUBIES]["baseValue"] * rarities[this.rarity]["multiplier"]);
+               }
+               break;
+            default:
+               _loc3_ = 0;
+         }
+         return _loc3_;
+      }
+      
+      public function getTotalGoldReward(param1:Number) : BigDecimal
+      {
+         var _loc3_:BigDecimal = null;
+         var _loc2_:UserData = CurrentUser.instance as UserData;
+         if(this.statId == BONUS_GOLD)
+         {
+            _loc3_ = _loc2_.getPurchaseGoldAmount(param1).multiply(new BigDecimal(this.level * (1 + stats[BONUS_GOLD]["baseValue"] * rarities[this.rarity]["multiplier"])));
+         }
+         else
+         {
+            _loc3_ = _loc2_.getPurchaseGoldAmount(param1).multiply(new BigDecimal(this.level));
+         }
+         _loc3_ = _loc3_.ceil();
+         return _loc3_;
+      }
+      
+      public function getTotalBonusStats() : Number
+      {
+         return stats[this.statId]["baseValue"] * rarities[this.rarity]["multiplier"];
+      }
+      
+      public function getLevelTitle() : String
+      {
+         if(titles.hasOwnProperty(this.level))
+         {
+            return titles[this.level]["name"];
+         }
+         return "Demigod + " + (this.level - 8);
+      }
+      
+      public function getRewardAndChance(param1:Number, param2:Number) : Object
+      {
+         var _loc3_:Object = {
+            "gauranteed":0,
+            "chance":0
+         };
+         var _loc4_:* = this.getTotalReward(param1,param2);
+         var _loc5_:Number = Math.floor(_loc4_);
+         var _loc6_:Number = Math.round(MathUtils.roundNumber(_loc4_ - _loc5_,2) * 100);
+         _loc3_.gauranteed = _loc5_;
+         _loc3_.chance = _loc6_;
+         return _loc3_;
+      }
+      
+      public function getTooltip() : Object
+      {
+         var _loc3_:String = null;
+         var _loc1_:* = "";
+         var _loc2_:* = "";
+         _loc2_ = _loc2_ + (_("%s the %s",this.name,this.getLevelTitle()) + "\n");
+         if(this.level == 1)
+         {
+            _loc3_ = "Normal quest rewards";
+         }
+         else
+         {
+            _loc3_ = _("%sx quest rewards",this.level);
+         }
+         var _loc4_:* = _("Lvl. %s: %s",this.level,_loc3_) + "\n";
+         _loc4_ = _loc4_ + (_("%d% of the way to Lvl. %s",Math.floor(this.experience * 100),this.level + 1) + "\n");
+         _loc1_ = _loc1_ + StringFormatter.colorize(_loc4_,"#33FF00");
+         _loc1_ = _loc1_ + StringFormatter.colorize("\n" + _("Hold CTRL or SHIFT to see Dismiss Button."),"#FFFFFF");
+         var _loc5_:Object = {
+            "header":_loc2_,
+            "body":_loc1_
+         };
+         return _loc5_;
+      }
+      
+      public function getRewardDescriptionText(param1:Number, param2:Number) : String
+      {
+         var _loc3_:String = Mercenaries.rewardTypes[param1]["description"];
+         var _loc4_:Object = this.getRewardAndChance(param1,param2);
+         var _loc5_:Number = _loc4_.gauranteed;
+         var _loc6_:Number = _loc4_.chance;
+         if(param1 == 2)
+         {
+            return _("+%s %s",BigNumberFormatter.shortenNumber(this.getTotalGoldReward(param2)),_loc3_);
+         }
+         if(param1 == 4)
+         {
+            if(_loc5_ == 0)
+            {
+               return _("%s% chance of a relic",_loc6_);
+            }
+            return _("+%s relic and %s% chance of another",_loc5_,_loc6_);
+         }
+         if(param1 == 3)
+         {
+            if(_loc5_ == 0)
+            {
+               return _("%s% chance of a hero soul",_loc6_);
+            }
+            if(_loc5_ > 100)
+            {
+               return _("%s hero souls",BigNumberFormatter.shortenNumber(_loc5_));
+            }
+            if(_loc5_ > 9)
+            {
+               return _("%s-%s hero souls",BigNumberFormatter.shortenNumber(_loc5_),BigNumberFormatter.shortenNumber(_loc5_ + 1));
+            }
+            return _("+%s hero souls and %s% chance of another",BigNumberFormatter.shortenNumber(_loc5_),_loc6_);
+         }
+         if(param1 == 5)
+         {
+            if(_loc5_ == 0)
+            {
+               return _("%s% chance of a random skill activation",_loc6_);
+            }
+            if(_loc5_ >= 9)
+            {
+               return _("All skills activated");
+            }
+            return _("+%s skill activations and %s% chance of another",_loc5_,_loc6_);
+         }
+         if(param1 == 6)
+         {
+            if(_loc5_ == 0)
+            {
+               return _("%s% chance of a ruby",_loc6_);
+            }
+            if(_loc5_ > 100)
+            {
+               return _("%s rubies",_loc5_);
+            }
+            if(_loc5_ > 9)
+            {
+               return _("%s-%s rubies",_loc5_,_loc5_ + 1);
+            }
+            return _("+%s rubies and %s% chance of another",_loc5_,_loc6_);
+         }
+         return _("+%s %s",this.getTotalReward(param1,param2),_loc3_);
+      }
+   }
+}
