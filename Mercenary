@@ -123,7 +123,7 @@ package models
             "baseValue":0
          },
          6:{
-            "description":"-%s% time on recruitment quests",
+            "description":"+%s% recruitment quest speed",
             "baseValue":0.1
          }
       };
@@ -462,6 +462,8 @@ package models
       
       public var bonusLives:Number;
       
+      public var timeToDie:Number;
+      
       public function Mercenary()
       {
          super();
@@ -485,6 +487,7 @@ package models
          this.registerDynamicBoolean("createTime");
          this.registerDynamicBoolean("creationQuipped");
          this.registerDynamicNumber("bonusLives");
+         this.registerDynamicNumber("timeToDie");
       }
       
       public function getDeathTime() : Number
@@ -613,9 +616,9 @@ package models
             _loc1_.total5MinuteQuests++;
          }
          var _loc6_:Number = this.lastQuestDuration / 86400;
-         if(_loc6_ <= 1800 / 86400 && this.lastQuestRewardType == 1)
+         if(this.lastQuestRewardType == 1)
          {
-            _loc6_ = 1800 / 86400;
+            _loc6_ = 28800 / 86400;
          }
          if(_loc6_ < 0)
          {
@@ -628,11 +631,12 @@ package models
             this.level++;
             if(this.level > _loc1_.highestMercenaryLevelEver)
             {
-               _loc1_.highestMercenaryLevelEver++;
+               _loc1_.highestMercenaryLevelEver = this.level;
             }
             _loc3_.leveled = true;
          }
          _loc3_.gotSomething = _loc4_;
+         this.timeToDie = this.timeToDie - this.lastQuestDuration;
          this.lastQuestDuration = 0;
          this.lastQuestGoldRewardQty = 0;
          this.lastQuestRewardQty = 0;
@@ -646,7 +650,12 @@ package models
       
       public function getReviveCost() : Number
       {
-         return Math.ceil(Math.pow(1.5,this.level) + 10);
+         var _loc1_:Number = Math.ceil(Math.pow(1.5,this.level) + 10);
+         if((CurrentUser.instance as UserData).isMobile)
+         {
+            return _loc1_ * 10;
+         }
+         return _loc1_;
       }
       
       public function revive() : void
@@ -654,7 +663,23 @@ package models
          var _loc1_:UserData = CurrentUser.instance as UserData;
          _loc1_.totalMercenariesRevived++;
          this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp - 1000 * this.questResult;
-         this.questResult = 0;
+         this.timeToDie = 0;
+         var _loc2_:* = this.roller.randFloat() > 4 / 5;
+         while(!_loc2_)
+         {
+            this.timeToDie = this.timeToDie + 86400;
+            _loc2_ = this.roller.randFloat() > 4 / 5;
+         }
+         this.timeToDie = this.timeToDie + this.roller.range(1,86400);
+         this.timeToDie = this.timeToDie + this.questResult;
+         if(this.timeToDie - this.lastQuestDuration <= 0)
+         {
+            this.questResult = this.timeToDie;
+         }
+         else
+         {
+            this.questResult = 0;
+         }
          _loc1_.checkAchievements();
       }
       
@@ -690,7 +715,7 @@ package models
          {
             if(this.statId == BONUS_RECRUITMENT_SPEED)
             {
-               this.lastQuestDuration = param4 * (1 - stats[BONUS_SKILLS]["baseValue"] * rarities[this.rarity]["multiplier"]);
+               this.lastQuestDuration = param4 / (1 + stats[BONUS_RECRUITMENT_SPEED].baseValue * rarities[this.rarity].multiplier);
             }
             else
             {
@@ -704,10 +729,9 @@ package models
          this.lastQuestDuration = Math.max(1,this.lastQuestDuration);
          this.lastQuestSuccessChance = param5;
          this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp;
-         var _loc7_:* = this.roller.randFloat() > this.lastQuestSuccessChance;
-         if(_loc7_)
+         if(this.timeToDie - this.lastQuestDuration <= 0)
          {
-            this.questResult = this.roller.range(1,this.lastQuestDuration);
+            this.questResult = this.timeToDie;
          }
          else
          {
@@ -790,7 +814,7 @@ package models
       {
          if(titles.hasOwnProperty(this.level))
          {
-            return titles[this.level]["name"];
+            return _(titles[this.level]["name"]);
          }
          return _("Demigod + %s",this.level - 8);
       }
@@ -803,7 +827,7 @@ package models
          };
          var _loc4_:* = this.getTotalReward(param1,param2);
          var _loc5_:Number = Math.floor(_loc4_);
-         var _loc6_:Number = Math.round(MathUtils.roundNumber(_loc4_ - _loc5_,2) * 100);
+         var _loc6_:Number = Math.floor(MathUtils.roundNumber(_loc4_ - _loc5_,2) * 100);
          _loc3_.gauranteed = _loc5_;
          _loc3_.chance = _loc6_;
          return _loc3_;
@@ -814,7 +838,7 @@ package models
          var _loc4_:String = null;
          var _loc2_:* = "";
          var _loc3_:* = "";
-         _loc3_ = _loc3_ + (_("%s the %s",this.name,this.getLevelTitle()) + "\n");
+         _loc3_ = _loc3_ + (_("%s the %s",_(this.name),this.getLevelTitle()) + "\n");
          if(this.level == 1)
          {
             _loc4_ = _("Normal quest rewards");
@@ -824,7 +848,7 @@ package models
             _loc4_ = _("%sx quest rewards",this.level);
          }
          var _loc5_:* = _("Lvl. %s: %s",this.level,_loc4_) + "\n";
-         _loc5_ = _loc5_ + (_("%d% of the way to Lvl. %s",Math.floor(this.experience * 100),this.level + 1) + "\n");
+         _loc5_ = _loc5_ + (_("%d% of the way to Lvl. %s",Math.max(0,Math.floor(this.experience * 100)),this.level + 1) + "\n");
          _loc2_ = _loc2_ + StringFormatter.colorize(_loc5_,"#33FF00");
          if(!param1)
          {
