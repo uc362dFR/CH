@@ -234,7 +234,7 @@ package models
          80:"Ralph",
          81:"Bryan",
          82:"Ethan",
-         83:"Roy",
+         83:"Roco",
          84:"Eugene",
          85:"Nosfrat",
          86:"Louis",
@@ -564,9 +564,6 @@ package models
                _loc3_.description = _("+%s %s",_loc11_,_loc5_);
                _loc4_ = _loc11_ > 0;
                break;
-					
-					
-					
             case 5:
                _loc12_ = {};
                _loc19_ = 1;
@@ -596,9 +593,6 @@ package models
                _loc3_.description = _("Random Skill Activation!");
                _loc4_ = _loc2_ > 0;
                break;
-					
-					
-					
             case 6:
                _loc16_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
                _loc17_ = Math.floor(_loc16_);
@@ -646,6 +640,7 @@ package models
          this.lastQuestStartTime = 0;
          this.lastQuestSuccessChance = 0;
          this.questResult = 0;
+         _loc1_.checkAchievements();
          return _loc3_;
       }
       
@@ -660,6 +655,7 @@ package models
          _loc1_.totalMercenariesRevived++;
          this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp - 1000 * this.questResult;
          this.questResult = 0;
+         _loc1_.checkAchievements();
       }
       
       public function bury() : void
@@ -671,6 +667,7 @@ package models
          {
             _loc1_.leeroyJenkinsBuried++;
          }
+         _loc1_.checkAchievements();
       }
       
       public function canFinishQuest() : Boolean
@@ -812,29 +809,32 @@ package models
          return _loc3_;
       }
       
-      public function getTooltip() : Object
+      public function getTooltip(param1:Boolean = false) : Object
       {
-         var _loc3_:String = null;
-         var _loc1_:* = "";
+         var _loc4_:String = null;
          var _loc2_:* = "";
-         _loc2_ = _loc2_ + (_("%s the %s",this.name,this.getLevelTitle()) + "\n");
+         var _loc3_:* = "";
+         _loc3_ = _loc3_ + (_("%s the %s",this.name,this.getLevelTitle()) + "\n");
          if(this.level == 1)
          {
-            _loc3_ = _("Normal quest rewards");
+            _loc4_ = _("Normal quest rewards");
          }
          else
          {
-            _loc3_ = _("%sx quest rewards",this.level);
+            _loc4_ = _("%sx quest rewards",this.level);
          }
-         var _loc4_:* = _("Lvl. %s: %s",this.level,_loc3_) + "\n";
-         _loc4_ = _loc4_ + (_("%d% of the way to Lvl. %s",Math.floor(this.experience * 100),this.level + 1) + "\n");
-         _loc1_ = _loc1_ + StringFormatter.colorize(_loc4_,"#33FF00");
-         _loc1_ = _loc1_ + StringFormatter.colorize("\n" + _("Hold CTRL or SHIFT to see Dismiss Button."),"#FFFFFF");
-         var _loc5_:Object = {
-            "header":_loc2_,
-            "body":_loc1_
+         var _loc5_:* = _("Lvl. %s: %s",this.level,_loc4_) + "\n";
+         _loc5_ = _loc5_ + (_("%d% of the way to Lvl. %s",Math.floor(this.experience * 100),this.level + 1) + "\n");
+         _loc2_ = _loc2_ + StringFormatter.colorize(_loc5_,"#33FF00");
+         if(!param1)
+         {
+            _loc2_ = _loc2_ + StringFormatter.colorize("\n" + _("Hold CTRL or SHIFT to see Dismiss Button."),"#FFFFFF");
+         }
+         var _loc6_:Object = {
+            "header":_loc3_,
+            "body":_loc2_
          };
-         return _loc5_;
+         return _loc6_;
       }
       
       public function getRewardDescriptionText(param1:Number, param2:Number) : String
