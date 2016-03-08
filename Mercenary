@@ -239,7 +239,7 @@ package models
          85:"Nosfrat",
          86:"Louis",
          87:"Link",
-         88:"Voldemort",
+         88:"NoselessGuy",
          89:"Harry",
          90:"Pasha",
          91:"Sufail",
@@ -272,7 +272,7 @@ package models
          15:"Lisa",
          16:"Hermione",
          17:"Ashley",
-         18:"Samus",
+         18:"Sammy",
          19:"Zelda",
          20:"Helen",
          21:"Carol",
@@ -764,7 +764,7 @@ package models
          {
             return titles[this.level]["name"];
          }
-         return "Demigod + " + (this.level - 8);
+         return _("Demigod + %s",this.level - 8);
       }
       
       public function getRewardAndChance(param1:Number, param2:Number) : Object
@@ -789,7 +789,7 @@ package models
          _loc2_ = _loc2_ + (_("%s the %s",this.name,this.getLevelTitle()) + "\n");
          if(this.level == 1)
          {
-            _loc3_ = "Normal quest rewards";
+            _loc3_ = _("Normal quest rewards");
          }
          else
          {
