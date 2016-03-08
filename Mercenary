@@ -671,15 +671,8 @@ package models
             _loc2_ = this.roller.randFloat() > 4 / 5;
          }
          this.timeToDie = this.timeToDie + this.roller.range(1,86400);
-         this.timeToDie = this.timeToDie + this.questResult;
-         if(this.timeToDie - this.lastQuestDuration <= 0)
-         {
-            this.questResult = this.timeToDie;
-         }
-         else
-         {
-            this.questResult = 0;
-         }
+         this.timeToDie = this.timeToDie + this.lastQuestDuration;
+         this.questResult = 0;
          _loc1_.checkAchievements();
       }
       
