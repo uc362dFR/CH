@@ -93,7 +93,7 @@ package models
       
       public static const BONUS_SKILLS:Number = 4;
       
-      public static const BONUS_SUCCESS_RATE:Number = 5;
+      public static const BONUS_LIVES:Number = 5;
       
       public static const BONUS_RECRUITMENT_SPEED:Number = 6;
       
@@ -119,8 +119,8 @@ package models
             "baseValue":0.1
          },
          5:{
-            "description":"+%s% success rate on quests",
-            "baseValue":0.1
+            "description":"Extra Lives: %s",
+            "baseValue":0
          },
          6:{
             "description":"-%s% time on recruitment quests",
@@ -238,7 +238,7 @@ package models
          84:"Eugene",
          85:"Nosfrat",
          86:"Louis",
-         87:"Link",
+         87:"Linken",
          88:"NoselessGuy",
          89:"Harry",
          90:"Pasha",
@@ -270,10 +270,10 @@ package models
          13:"Nancy",
          14:"Betty",
          15:"Lisa",
-         16:"Hermione",
+         16:"Hera",
          17:"Ashley",
          18:"Sammy",
-         19:"Zelda",
+         19:"Melda",
          20:"Helen",
          21:"Carol",
          22:"Michelle",
@@ -460,6 +460,8 @@ package models
       
       public var creationQuipped:Boolean;
       
+      public var bonusLives:Number;
+      
       public function Mercenary()
       {
          super();
@@ -482,6 +484,7 @@ package models
          this.registerDynamicNumber("experience");
          this.registerDynamicBoolean("createTime");
          this.registerDynamicBoolean("creationQuipped");
+         this.registerDynamicNumber("bonusLives");
       }
       
       public function getDeathTime() : Number
@@ -633,12 +636,7 @@ package models
       
       public function revive() : void
       {
-         this.lastQuestDuration = 0;
-         this.lastQuestGoldRewardQty = 0;
-         this.lastQuestRewardQty = 0;
-         this.lastQuestRewardType = 0;
-         this.lastQuestStartTime = 0;
-         this.lastQuestSuccessChance = 0;
+         this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp - 1000 * this.questResult;
          this.questResult = 0;
       }
       
