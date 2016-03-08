@@ -157,12 +157,12 @@ package models
          var _loc4_:Number = (CurrentUser.instance as UserData).ancients.startingAscensionLevel;
          var _loc5_:Number = (CurrentUser.instance as UserData).highestFinishedZone;
          var _loc6_:Item = new Item();
-         if(param1) // true when bought or quested, false when natural
+         if(param1)
          {
             _loc18_ = Math.ceil(50 * (1 - Math.pow(1.2,-((_loc3_ - 100) / 100))));
             _loc18_ = Math.max(1,_loc18_);
             _loc18_ = Math.min(this.getHighestLevelItem() + 5,_loc18_);
-            _loc19_ = this.ascensionItemsRoller.range(Math.ceil(_loc18_ * 0.75),_loc18_); // 0-1
+            _loc19_ = this.ascensionItemsRoller.range(Math.ceil(_loc18_ * 0.75),_loc18_);
          }
          else
          {
@@ -176,7 +176,7 @@ package models
          {
             _loc8_[_loc9_] = _loc7_[_loc9_]["chance"];
          }
-         _loc10_ = this.ascensionItemsRoller.weightedChoice(_loc8_); //1-2
+         _loc10_ = this.ascensionItemsRoller.weightedChoice(_loc8_);
          _loc6_.rarity = _loc10_;
          _loc11_ = {};
          for each(_loc12_ in StaticData.instance.getAll(ItemBonusType))
@@ -202,7 +202,7 @@ package models
                });
                break;
             default:
-               _loc13_ = this.ascensionItemsRoller.weightedChoice({ //+1 2-3
+               _loc13_ = this.ascensionItemsRoller.weightedChoice({
                   1:6,
                   2:5,
                   3:4,
@@ -212,7 +212,7 @@ package models
          _loc14_ = 0;
          while(_loc14_ < _loc13_)
          {
-            _loc20_ = this.ascensionItemsRoller.weightedChoice(_loc11_); //+1-4 3-7
+            _loc20_ = this.ascensionItemsRoller.weightedChoice(_loc11_);
             delete _loc11_[_loc20_];
             _loc6_["bonusType" + (_loc14_ + 1)] = _loc20_;
             _loc14_++;
@@ -228,7 +228,7 @@ package models
             }
             else
             {
-               _loc15_[_loc14_] = this.ascensionItemsRoller.range(1,_loc16_ - (_loc13_ - _loc14_) + 1); //+0-3 3-10
+               _loc15_[_loc14_] = this.ascensionItemsRoller.range(1,_loc16_ - (_loc13_ - _loc14_) + 1);
                if(isNaN(_loc15_[_loc14_]))
                {
                   throw new Error("NAN!!!");
@@ -246,13 +246,14 @@ package models
             if(_loc14_ >= _loc13_)
             {
                var _loc17_:Number = MiscUtils.lengthOfObject(Item.itemTypes);
-               _loc6_.type = Item.itemTypes[this.ascensionItemsRoller.range(1,_loc17_)]; //+1 4-11
+               _loc6_.type = Item.itemTypes[this.ascensionItemsRoller.range(1,_loc17_)];
                _loc6_.generateName();
                return _loc6_;
             }
             _loc12_ = new ItemBonusType();
             _loc12_.id = _loc6_["bonusType" + (_loc14_ + 1)];
             _loc21_ = "bonus" + (_loc14_ + 1) + "Level";
+            _loc6_["bonus" + (_loc14_ + 1) + "Distribution"] = _loc15_[_loc14_];
             switch(_loc12_.scaling)
             {
                case "linear":
@@ -403,7 +404,7 @@ package models
          return _loc2_;
       }
       
-      public function getTotalBonusesForBonusType(param1:Number) : *
+      public function getAncientLevelsForBonusType(param1:Number) : *
       {
          var _loc4_:Item = null;
          var _loc2_:Number = 0;
@@ -413,7 +414,7 @@ package models
             _loc4_ = this.getItemInSlot(_loc3_);
             if(_loc4_)
             {
-               _loc2_ = _loc2_ + _loc4_.getBonusAmountForBonusType(param1);
+               _loc2_ = _loc2_ + _loc4_.getAncientLevelsForBonusType(param1);
             }
             _loc3_++;
          }
