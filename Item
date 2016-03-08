@@ -1,0 +1,381 @@
+package models
+{
+   import com.playsaurus.model.Model;
+   import it.sephiroth.gettext._;
+   import com.gskinner.utils.Rnd;
+   import com.playsaurus.utils.StringFormatter;
+   
+   public class Item extends Model
+   {
+      
+      public static const NUM_TYPES:Number = 6;
+      
+      public static const itemTypes:Object = {
+         1:"sword",
+         2:"amulet",
+         3:"ring",
+         4:"helm",
+         5:"gloves"
+      };
+      
+      public static const rarities:Object = {
+         1:{
+            "name":"Common",
+            "multiplier":0.5,
+            "chance":5000,
+            "color":"#DDDDDD",
+            "bgColor":6908265
+         },
+         2:{
+            "name":"Uncommon",
+            "multiplier":0.75,
+            "chance":2000,
+            "color":"#1EFF00",
+            "bgColor":946432
+         },
+         3:{
+            "name":"Rare",
+            "multiplier":1,
+            "chance":800,
+            "color":"#0080FF",
+            "bgColor":21930
+         },
+         4:{
+            "name":"Epic",
+            "multiplier":1.25,
+            "chance":300,
+            "color":"#B048F8",
+            "bgColor":9046497
+         },
+         5:{
+            "name":"Fabled",
+            "multiplier":1.5,
+            "chance":100,
+            "color":"#77FF77",
+            "bgColor":52224
+         },
+         6:{
+            "name":"Mythical",
+            "multiplier":1.75,
+            "chance":25,
+            "color":"#BBBBFF",
+            "bgColor":7303167
+         },
+         7:{
+            "name":"Legendary",
+            "multiplier":2.2,
+            "chance":8,
+            "color":"#FFFF00",
+            "bgColor":14540032
+         },
+         8:{
+            "name":"Transcendent",
+            "multiplier":2.6,
+            "chance":1,
+            "color":"#FF00FF",
+            "bgColor":12517567
+         }
+      };
+       
+      public var name:String;
+      
+      public var uid:Number;
+      
+      public var level:Number;
+      
+      public var rarity:Number;
+      
+      public var type:String;
+      
+      public var imageId:Number;
+      
+      public var bonusType1:Number;
+      
+      public var bonusType2:Number;
+      
+      public var bonusType3:Number;
+      
+      public var bonusType4:Number;
+      
+      public var bonus1Level:Number;
+      
+      public var bonus2Level:Number;
+      
+      public var bonus3Level:Number;
+      
+      public var bonus4Level:Number;
+      
+      public var isNew:Boolean = true;
+      
+      public var upgradeCount:Number;
+      
+      public function Item()
+      {
+         super();
+         this.registerDynamicString("name");
+         this.registerDynamicNumber("uid");
+         this.registerDynamicNumber("level");
+         this.registerDynamicNumber("rarity");
+         this.registerDynamicString("type");
+         this.registerDynamicNumber("imageId");
+         this.registerDynamicNumber("bonusType1");
+         this.registerDynamicNumber("bonusType2");
+         this.registerDynamicNumber("bonusType3");
+         this.registerDynamicNumber("bonusType4");
+         this.registerDynamicNumber("bonus1Level");
+         this.registerDynamicNumber("bonus2Level");
+         this.registerDynamicNumber("bonus3Level");
+         this.registerDynamicNumber("bonus4Level");
+         this.registerDynamicBoolean("isNew");
+         this.registerDynamicNumber("upgradeCount");
+      }
+      
+      public function ucaseFirst(param1:String) : String
+      {
+         return param1.substr(0,1).toUpperCase() + param1.substr(1);
+      }
+      
+      public function generateName() : String
+      {
+         var _loc1_:ItemImage = new ItemImage();
+         _loc1_.id = this.getImageId();
+         var _loc2_:ItemBonusType = new ItemBonusType();
+         _loc2_.id = this.bonusType1;
+         this.name = _("%s of %s",_loc1_.name,this.ucaseFirst(_loc2_.name));
+         this.name = this.name.replace("%1$s",_loc1_.name);
+         this.name = this.name.replace("%2$s",this.ucaseFirst(_loc2_.name));
+         return this.name;
+      }
+      
+      public function getSalvagePoints() : Number
+      {
+         return Math.ceil(this.level * 10 * rarities[this.rarity].multiplier);
+      }
+      
+      public function generateImageId() : void
+      {
+         var _loc2_:ItemImage = null;
+         var _loc1_:Array = StaticDataWrapper.instance.getImagesForItemType(this.type,this.rarity);
+         if(_loc1_.length > 0)
+         {
+            _loc2_ = _loc1_[Rnd.integer(0,_loc1_.length)];
+            this.imageId = _loc2_.id;
+         }
+         else
+         {
+            this.imageId = 1;
+         }
+      }
+      
+      public function getImageId() : Number
+      {
+         if(isNaN(this.imageId) || this.imageId == 0)
+         {
+            this.generateImageId();
+         }
+         return this.imageId;
+      }
+      
+      public function getTooltip() : Object
+      {
+         var _loc1_:* = "";
+         var _loc2_:* = "";
+         _loc2_ = _loc2_ + (StringFormatter.colorize(this.generateName(),Item.rarities[this.rarity].color) + "\n");
+         _loc1_ = _loc1_ + (_(Item.rarities[this.rarity].name) + "\n");
+         _loc1_ = _loc1_ + (_("Level %s",this.level) + "\n\n");
+         var _loc3_:ItemBonusType = new ItemBonusType();
+         var _loc4_:* = "";
+         var _loc5_:Number = 1;
+         while(_loc5_ <= 4)
+         {
+            if(this["bonusType" + _loc5_])
+            {
+               _loc3_.id = this["bonusType" + _loc5_];
+               _loc4_ = _loc4_ + (_loc3_.getProcessedEffectDescription(this["bonus" + _loc5_ + "Level"]) + "\n");
+            }
+            _loc5_++;
+         }
+         _loc1_ = _loc1_ + _loc4_;
+         var _loc6_:Object = {
+            "header":_loc2_,
+            "body":_loc1_
+         };
+         return _loc6_;
+      }
+      
+      public function getBonusAmountForBonusType(param1:Number) : Number
+      {
+         var _loc2_:ItemBonusType = new ItemBonusType();
+         var _loc3_:Number = 1;
+         while(_loc3_ <= 4)
+         {
+            if(this["bonusType" + _loc3_] == param1)
+            {
+               _loc2_.id = this["bonusType" + _loc3_];
+               return _loc2_.getBonusAmount(this["bonus" + _loc3_ + "Level"]);
+            }
+            _loc3_++;
+         }
+         return 0;
+      }
+      
+      public function upgrade(param1:Object) : *
+      {
+         var _loc2_:Number = 1;
+         while(_loc2_ <= 4)
+         {
+            if(this["bonusType" + _loc2_])
+            {
+               this["bonus" + _loc2_ + "Level"] = param1["newStats"][_loc2_];
+            }
+            _loc2_++;
+         }
+         if(param1["levelsRaised"] > 0)
+         {
+            this.upgradeCount++;
+            this.level = this.level + param1["levelsRaised"];
+         }
+      }
+      
+      public function getUpgradeData() : Object
+      {
+         var _loc4_:String = null;
+         var _loc12_:* = NaN;
+         var _loc1_:* = {};
+         _loc1_["newStats"] = {};
+         _loc1_["newStatsText"] = "";
+         var _loc2_:* = "";
+         var _loc3_:ItemBonusType = new ItemBonusType();
+         var _loc5_:Number = 0;
+         var _loc6_:Number = 0;
+         var _loc7_:Number = 0;
+         var _loc8_:Object = {};
+         var _loc9_:Object = {};
+         var _loc10_:Object = {};
+         var _loc11_:Number = 0;
+         _loc12_ = 1;
+         loop0:
+         while(true)
+         {
+            if(_loc12_ > 4)
+            {
+               while(_loc11_ < this.level)
+               {
+                  _loc12_ = 1;
+                  while(_loc12_ <= 4)
+                  {
+                     if(this["bonusType" + _loc12_])
+                     {
+                        if(_loc10_[_loc12_] < _loc9_[_loc12_])
+                        {
+                           _loc10_[_loc12_]++;
+                           _loc11_++;
+                           if(_loc11_ >= this.level)
+                           {
+                              break;
+                           }
+                        }
+                     }
+                     _loc12_++;
+                  }
+               }
+               _loc12_ = 1;
+               loop3:
+               while(true)
+               {
+                  if(_loc12_ > 4)
+                  {
+                     if(!this.upgradeCount)
+                     {
+                        this.upgradeCount = 0;
+                     }
+                     switch(_loc5_)
+                     {
+                        case 1:
+                           _loc7_ = 1;
+                           break;
+                        case 2:
+                           _loc7_ = 1.3;
+                           break;
+                        case 3:
+                           _loc7_ = 1.6;
+                           break;
+                        case 4:
+                           _loc7_ = 2;
+                           break;
+                     }
+                     _loc1_["newStatsText"] = _loc1_["newStatsText"] + (_(Item.rarities[this.rarity].name) + "\n");
+                     _loc1_["newStatsText"] = _loc1_["newStatsText"] + (_("Level %s",this.level + _loc5_) + "\n\n");
+                     _loc1_["newStatsText"] = _loc1_["newStatsText"] + _loc2_;
+                     _loc1_["upgradeCost"] = Math.ceil(Math.pow(2,this.upgradeCount) * _loc7_);
+                     _loc1_["levelsRaised"] = _loc5_;
+                     return _loc1_;
+                  }
+                  if(this["bonusType" + _loc12_])
+                  {
+                     _loc3_.id = this["bonusType" + _loc12_];
+                     _loc4_ = "bonus" + _loc12_ + "Level";
+                     if(this.level + _loc5_ >= 50)
+                     {
+                        _loc6_ = this[_loc4_];
+                     }
+                     else
+                     {
+                        _loc5_++;
+                        switch(_loc3_.scaling)
+                        {
+                           case "linear":
+                              _loc6_ = _loc10_[_loc12_] + 1;
+                              break;
+                           case "quadratic":
+                              _loc6_ = Math.ceil(Math.sqrt(_loc10_[_loc12_] + 1));
+                              break;
+                           case "cubic":
+                              _loc6_ = Math.ceil(Math.pow(_loc10_[_loc12_] + 1,1 / 3));
+                              break;
+                           default:
+                              break loop3;
+                        }
+                        if(_loc3_.maxLevel > 0 && _loc3_.maxLevel < _loc6_)
+                        {
+                           _loc6_ = _loc3_.maxLevel;
+                           _loc5_--;
+                        }
+                     }
+                     _loc1_["newStats"][_loc12_] = _loc6_;
+                     _loc2_ = _loc2_ + (_loc3_.getProcessedEffectDescription(_loc6_) + "\n");
+                  }
+                  _loc12_++;
+               }
+               throw new Error("Unknown scaling type \'" + _loc3_.scaling + "\'");
+            }
+            if(this["bonusType" + _loc12_])
+            {
+               _loc3_.id = this["bonusType" + _loc12_];
+               _loc4_ = "bonus" + _loc12_ + "Level";
+               switch(_loc3_.scaling)
+               {
+                  case "linear":
+                     _loc8_[_loc12_] = this[_loc4_];
+                     _loc9_[_loc12_] = this[_loc4_];
+                     break;
+                  case "quadratic":
+                     _loc8_[_loc12_] = Math.pow(this[_loc4_] - 1,2);
+                     _loc9_[_loc12_] = Math.pow(this[_loc4_],2);
+                     break;
+                  case "cubic":
+                     _loc8_[_loc12_] = Math.pow(this[_loc4_] - 1,3);
+                     _loc9_[_loc12_] = Math.pow(this[_loc4_],3);
+                     break;
+                  default:
+                     break loop0;
+               }
+               _loc11_ = _loc11_ + _loc8_[_loc12_];
+               _loc10_[_loc12_] = _loc8_[_loc12_];
+            }
+            _loc12_++;
+         }
+         throw new Error("Unknown scaling type \'" + _loc3_.scaling + "\'");
+      }
+   }
+}
