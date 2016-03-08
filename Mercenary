@@ -2,11 +2,11 @@ package models
 {
    import com.playsaurus.model.Model;
    import com.playsaurus.random.Random;
+   import com.playsaurus.utils.ServerTimeKeeper;
    import com.bigDecimal.com.BigDecimal;
    import com.playsaurus.utils.CurrentUser;
    import it.sephiroth.gettext._;
    import com.playsaurus.managers.BigNumberFormatter;
-   import com.playsaurus.utils.ServerTimeKeeper;
    import com.doogog.utils.MathUtils;
    import com.playsaurus.utils.StringFormatter;
    
@@ -464,6 +464,10 @@ package models
       
       public var timeToDie:Number;
       
+      public var hasUpdate:Boolean = false;
+      
+      public var updateChecked:Boolean = false;
+      
       public function Mercenary()
       {
          super();
@@ -493,6 +497,39 @@ package models
       public function getDeathTime() : Number
       {
          return this.questResult;
+      }
+      
+      public function getProgressNumber() : Number
+      {
+         var _loc1_:Number = this.lastQuestStartTime;
+         var _loc2_:Number = this.lastQuestDuration * 1000;
+         var _loc3_:Number = ServerTimeKeeper.instance.timestamp;
+         var _loc4_:Number = _loc1_ + _loc2_;
+         if(_loc3_ >= _loc4_)
+         {
+            return 100;
+         }
+         if(_loc3_ <= _loc1_)
+         {
+            return 0;
+         }
+         return (_loc3_ - _loc1_) / _loc2_ * 100;
+      }
+      
+      public function getRemainingTime() : Number
+      {
+         return (100 - this.getProgressNumber()) / 100 * this.lastQuestDuration;
+      }
+      
+      public function hasFinishedQuest() : Boolean
+      {
+         return this.lastQuestStartTime > 0 && this.getDeathTime() == 0 && this.getRemainingTime() == 0;
+      }
+      
+      public function isDead() : Boolean
+      {
+         var _loc1_:Number = this.getDeathTime();
+         return _loc1_ > 0 && ServerTimeKeeper.instance.timestamp >= this.lastQuestStartTime + _loc1_ * 1000;
       }
       
       public function finishQuest() : Object
@@ -850,7 +887,14 @@ package models
          if(this.lastQuestDuration != 0)
          {
             _loc7_ = "\n" + _("On Quest") + "\n";
-            _loc7_ = _loc7_ + (_("Reward: %s",this.getRewardDescriptionText(this.lastQuestRewardType,this.lastQuestRewardQty)) + "\n");
+            if(this.lastQuestRewardType == 2)
+            {
+               _loc7_ = _loc7_ + (_("Reward: %s",this.getRewardDescriptionText(this.lastQuestRewardType,this.lastQuestGoldRewardQty)) + "\n");
+            }
+            else
+            {
+               _loc7_ = _loc7_ + (_("Reward: %s",this.getRewardDescriptionText(this.lastQuestRewardType,this.lastQuestRewardQty)) + "\n");
+            }
             _loc2_ = _loc2_ + StringFormatter.colorize(_loc7_,"#00DDFF");
          }
          if(!param1)
