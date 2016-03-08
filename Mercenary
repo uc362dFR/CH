@@ -767,7 +767,10 @@ package models
             case 4:
                break;
             case 5:
-               _loc3_ = _loc3_ * (1 + stats[BONUS_SKILLS]["baseValue"] * rarities[this.rarity]["multiplier"]);
+               if(this.statId == BONUS_SKILLS)
+               {
+                  _loc3_ = _loc3_ * (1 + stats[BONUS_SKILLS]["baseValue"] * rarities[this.rarity]["multiplier"]);
+               }
                _loc3_ = Math.min(9,_loc3_);
                break;
             case 6:
@@ -829,6 +832,7 @@ package models
       public function getTooltip(param1:Boolean = false) : Object
       {
          var _loc4_:String = null;
+         var _loc7_:String = null;
          var _loc2_:* = "";
          var _loc3_:* = "";
          _loc3_ = _loc3_ + (_("%s the %s",_(this.name),this.getLevelTitle()) + "\n");
@@ -843,6 +847,12 @@ package models
          var _loc5_:* = _("Lvl. %s: %s",this.level,_loc4_) + "\n";
          _loc5_ = _loc5_ + (_("%d% of the way to Lvl. %s",Math.max(0,Math.floor(this.experience * 100)),this.level + 1) + "\n");
          _loc2_ = _loc2_ + StringFormatter.colorize(_loc5_,"#33FF00");
+         if(this.lastQuestDuration != 0)
+         {
+            _loc7_ = "\n" + _("On Quest") + "\n";
+            _loc7_ = _loc7_ + (_("Reward: %s",this.getRewardDescriptionText(this.lastQuestRewardType,this.lastQuestRewardQty)) + "\n");
+            _loc2_ = _loc2_ + StringFormatter.colorize(_loc7_,"#00DDFF");
+         }
          if(!param1)
          {
             _loc2_ = _loc2_ + StringFormatter.colorize("\n" + _("Hold CTRL or SHIFT to see Dismiss Button."),"#FFFFFF");
