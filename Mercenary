@@ -526,6 +526,7 @@ package models
             case 2:
                _loc7_ = this.getTotalGoldReward(this.lastQuestGoldRewardQty);
                _loc1_.addGold(_loc7_);
+               _loc1_.goldQuestsCompleted++;
                _loc3_.description = _("+%s %s",BigNumberFormatter.shortenNumber(_loc7_),_loc5_);
                break;
             case 3:
@@ -541,6 +542,7 @@ package models
                {
                   _loc1_.addSouls(_loc2_);
                }
+               _loc1_.heroSoulQuestsCompleted++;
                _loc4_ = _loc2_ > 0;
                _loc3_.description = _("+%s %s",_loc2_,_loc5_);
                break;
@@ -558,9 +560,13 @@ package models
                   _loc1_.items.buyAscensionItem();
                   _loc11_++;
                }
+               _loc1_.relicQuestsCompleted++;
                _loc3_.description = _("+%s %s",_loc11_,_loc5_);
                _loc4_ = _loc11_ > 0;
                break;
+					
+					
+					
             case 5:
                _loc12_ = {};
                _loc19_ = 1;
@@ -586,9 +592,13 @@ package models
                   _loc1_.actionBar.onSkillClick(_loc20_,false);
                   _loc19_++;
                }
+               _loc1_.skillQuestsCompleted++;
                _loc3_.description = _("Random Skill Activation!");
                _loc4_ = _loc2_ > 0;
                break;
+					
+					
+					
             case 6:
                _loc16_ = this.getTotalReward(this.lastQuestRewardType,this.lastQuestRewardQty);
                _loc17_ = Math.floor(_loc16_);
@@ -599,9 +609,14 @@ package models
                   _loc2_++;
                }
                _loc1_.addRubies(_loc2_,"mercenary_reward",0);
+               _loc1_.rubyQuestsCompleted++;
                _loc3_.description = _("+%s %s",_loc2_,_loc5_);
                _loc4_ = _loc2_ > 0;
                break;
+         }
+         if(this.lastQuestDuration == 300)
+         {
+            _loc1_.total5MinuteQuests++;
          }
          var _loc6_:Number = this.lastQuestDuration / 86400;
          if(_loc6_ <= 1800 / 86400 && this.lastQuestRewardType == 1)
@@ -617,6 +632,10 @@ package models
          {
             this.experience = this.experience - 1;
             this.level++;
+            if(this.level > _loc1_.highestMercenaryLevelEver)
+            {
+               _loc1_.highestMercenaryLevelEver++;
+            }
             _loc3_.leveled = true;
          }
          _loc3_.gotSomething = _loc4_;
@@ -637,8 +656,21 @@ package models
       
       public function revive() : void
       {
+         var _loc1_:UserData = CurrentUser.instance as UserData;
+         _loc1_.totalMercenariesRevived++;
          this.lastQuestStartTime = ServerTimeKeeper.instance.timestamp - 1000 * this.questResult;
          this.questResult = 0;
+      }
+      
+      public function bury() : void
+      {
+         var _loc1_:UserData = CurrentUser.instance as UserData;
+         _loc1_.totalMercenariesBuried++;
+         _loc1_.mercenaryCount--;
+         if(this.name == maleNames[100])
+         {
+            _loc1_.leeroyJenkinsBuried++;
+         }
       }
       
       public function canFinishQuest() : Boolean
