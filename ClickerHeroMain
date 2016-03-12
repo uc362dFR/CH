@@ -1,0 +1,1614 @@
+package
+{
+   import com.doogog.game.GameBase;
+   import com.playsaurus.console.Console;
+   import ui.HeroClickerUIManager;
+   import heroclickerlib.managers.BattleManager;
+   import com.playsaurus.loading.AssetManager;
+   import heroclickerlib.managers.ForcedImports;
+   import models.UserData;
+   import com.playsaurus.staticData.StaticData;
+   import models.StaticDataWrapper;
+   import com.playsaurus.loading.DataLoader;
+   import flash.utils.ByteArray;
+   import it.sephiroth.gettext.GetText;
+   import flash.text.TextField;
+   import flash.events.Event;
+   import com.playsaurus.utils.CurrentUser;
+   import com.junkbyte.console.Cc;
+   import flash.system.Security;
+   import com.playsaurus.utils.CapabilitiesChecker;
+   import flash.system.Capabilities;
+   import heroclickerlib.managers.platforms.PlatformManager;
+   import com.playsaurus.utils.ServerTimeKeeper;
+   import heroclickerlib.managers.GameAnalyticsManager;
+   import com.playsaurus.payments.PayPalManager;
+   import flash.display.Sprite;
+   import com.playsaurus.managers.BigNumberFormatter;
+   import com.doogog.utils.GenericEvent;
+   import lib.utils.TimeKeeper;
+   import com.playsaurus.utils.EnterFrameSignaller;
+   import com.playsaurus.loading.EmbedAssetManager;
+   import heroclickerlib.managers.SaveManager;
+   import models.Hero;
+   import com.doogog.utils.MiscUtils;
+   import models.Monster;
+   import com.playsaurus.model.Asset;
+   import models.LanguageManager;
+   import com.bigDecimal.com.BigDecimal;
+   import it.sephiroth.gettext._;
+   import lib.managers.TextManager;
+   import heroclickerlib.managers.PatchNotes;
+   import models.Zone;
+   import models.Ancient;
+   import ui.PowerbloopPanel;
+   import models.Ancients;
+   import com.playsaurus.miniclip.MiniclipAPIWrapper;
+   import ui.ImportScreen;
+   import heroclickerlib.managers.Formulas;
+   import models.ActionBar;
+   import flash.events.KeyboardEvent;
+   import br.com.stimuli.loading.BulkProgressEvent;
+   import com.maccherone.json.JSONEncoder;
+   import com.playsaurus.model.Model;
+   import com.adobe.serialization.json.JSONDecoder;
+   import flash.system.System;
+   import com.playsaurus.analytics.GAnalyticsManager;
+   import heroclickerlib.managers.HeroClickerBitmapManager;
+   import com.reygazu.anticheat.managers.CheatManager;
+   import com.playsaurus.random.Random;
+   import com.gskinner.utils.Rnd;
+   import com.playsaurus.utils.Search;
+   import com.playsaurus.armorgames.ArmorGamesAPIWrapper;
+   import heroclickerlib.managers.platforms.SteamworksManager;
+   import com.playsaurus.ane.SteamworksAPIWrapper;
+   import com.playsaurus.utils.StopWatch;
+   import com.playsaurus.utils.MemoryMeter;
+   import com.greensock.plugins.TweenPlugin;
+   import com.greensock.plugins.FramePlugin;
+   import lib.ui.UISoundProvider;
+   import heroclickerlib.managers.HeroClickerSoundManager;
+   import heroclickerlib.embed.DataEmbeds;
+   import heroclickerlib.embed.HeroEmbeds;
+   import heroclickerlib.embed.HeroGoldEmbeds;
+   import heroclickerlib.embed.MonsterEmbeds;
+   import heroclickerlib.embed.AudioEmbeds;
+   import flash.events.MouseEvent;
+   import com.pippoflash.string.JsonMan;
+   
+   public class HeroClickerMain extends GameBase
+   {
+      
+      public static var bullshitForCompile:String = "fuck";
+      
+      public static var version:String = "0.26a";
+      
+      public static const TEST_BUILD:Boolean = false;
+      
+      public static const BUILD:Number = 26;
+      
+      public static const CLOUD_SAVE_SERVER_URL:String = "http://ClickerHeroes-SavedGames3-747864888.us-east-1.elb.amazonaws.com";
+      
+      public static const TIMESTAMP_URL:String = "http://ClickerHeroes-SavedGames3-747864888.us-east-1.elb.amazonaws.com/timestamp.php";
+       
+      private var _console:Console;
+      
+      private var _uiManager:HeroClickerUIManager;
+      
+      private var _battleManager:BattleManager;
+      
+      private var _starlingStarter:StarlingStarter;
+      
+      private var _assetManager:AssetManager;
+      
+      private var _forcedImports:ForcedImports;
+      
+      private var _userData:UserData;
+      
+      private var _staticData:StaticData;
+      
+      private var _staticDataWrapper:StaticDataWrapper;
+      
+      private var _userDataLoader:DataLoader;
+      
+      private var _staticDataByteArray:ByteArray;
+      
+      private var _staticDataLoader:DataLoader;
+      
+      private var _starlingRoot:StarlingRoot;
+      
+      private var _isRunningOnWeb:Boolean;
+      
+      public var Translator:GetText;
+      
+      public var timeLabel:TextField;
+      
+      private var _currentHero:Number = 27;
+      
+      private var _fuckingText:String = "";
+      
+      public function HeroClickerMain()
+      {
+         super();
+         trace("version",version);
+         MemoryMeter.console = this._console;
+         StopWatch.console = this._console;
+         trace("playerType",Capabilities.playerType);
+         if(Capabilities.playerType != "Desktop")
+         {
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
+         }
+         TweenPlugin.activate([FramePlugin]);
+         UISoundProvider.playSoundFunction = HeroClickerSoundManager.instance.playSoundEffectById;
+         this._assetManager = AssetManager.instance;
+         this._assetManager.basePath = "assets/";
+         TextManager.STANDARD_FONT = "Matiz";
+         var _loc1_:ByteArray = DataEmbeds.getLanguageData("english");
+         this.Translator = GetText.getInstance();
+         this.Translator.install("","",_loc1_);
+         this.determineWebServer();
+         EmbedAssetManager.instance.addLibrary(new DataEmbeds(),"data");
+         EmbedAssetManager.instance.addLibrary(new HeroEmbeds(),"heroes");
+         EmbedAssetManager.instance.addLibrary(new HeroGoldEmbeds(),"heroes_golden");
+         EmbedAssetManager.instance.addLibrary(new MonsterEmbeds(),"monsters");
+         EmbedAssetManager.instance.addLibrary(new AudioEmbeds(),"audio");
+         UISoundProvider.DEFAULT_MOUSE_CLICK_ID = 1;
+         if(stage)
+         {
+            this.onStageAdded(null);
+         }
+         else
+         {
+            addEventListener(Event.ADDED_TO_STAGE,this.onStageAdded,false,0,true);
+         }
+         this.addEventListener(MouseEvent.MOUSE_MOVE,this.onMouseMove);
+         this.addEventListener(MouseEvent.MOUSE_DOWN,this.onMouseDown);
+         JsonMan.init();
+      }
+      
+      public function get userData() : UserData
+      {
+         return this._userData;
+      }
+      
+      public function get battleManager() : BattleManager
+      {
+         return this._battleManager;
+      }
+      
+      public function get uiManager() : HeroClickerUIManager
+      {
+         return this._uiManager;
+      }
+      
+      public function get isRunningOnWeb() : Boolean
+      {
+         return this._isRunningOnWeb;
+      }
+      
+      public function onStarlingRootCreated(param1:StarlingRoot) : void
+      {
+         this._starlingRoot = param1;
+      }
+      
+      public function onMouseMove(param1:Event) : void
+      {
+         CurrentUser.instance = this._userData;
+         this._userData.updateActiveTime(false);
+      }
+      
+      public function onMouseDown(param1:Event) : void
+      {
+         this._userData.updateActiveTime();
+      }
+      
+      private function determineWebServer() : Boolean
+      {
+         Cc.start(this,"~");
+         if(Security.sandboxType == Security.REMOTE || CapabilitiesChecker.isMobile() || Capabilities.playerType == "Desktop")
+         {
+            this._isRunningOnWeb = true;
+            PlatformManager.TESTING_ARMORGAMES = false;
+            PlatformManager.TESTING_KONG = false;
+            PlatformManager.TESTING_MINICLIP = false;
+            PlatformManager.TESTING_STEAMWORKS = false;
+            PlatformManager.TESTING_KIZI = false;
+            PlatformManager.TESTING_FACEBOOK = false;
+            PlatformManager.TESTING_Y8 = false;
+            return true;
+         }
+         AssetManager.instance._bulkLoader.maxConnectionsPerHost = 256;
+         Cc.start(this,"~");
+         return false;
+      }
+      
+      private function setup() : void
+      {
+         CurrentUser.instance = this._userData;
+         this._userData.versionData();
+         if(flashVars.campaign)
+         {
+            this._userData.adCampaign = flashVars.campaign;
+         }
+         if(flashVars.retarget)
+         {
+            if(flashVars.retarget !== "None")
+            {
+               this._userData.adRetargetId = _flashVars.retarget;
+               this._userData.adRetargetTime = ServerTimeKeeper.instance.timestamp;
+            }
+         }
+         this._userData.addEventListener(UserData.TRACK_EVENT,this.onTrackEvent,false,0,true);
+         GameAnalyticsManager.instance.init(this._userData);
+         this.tryTrack();
+         PayPalManager.instance.init("admin@playsaurus.com",PlatformManager.instance.getPaypalCallbackURL(),PlatformManager.instance.getName());
+         this._battleManager = new BattleManager();
+         this._uiManager = new HeroClickerUIManager(this);
+         addChild(this._uiManager.display);
+         var _loc1_:Sprite = new Sprite();
+         addChild(_loc1_);
+         this._battleManager.init(this._userData,this._uiManager);
+         this._uiManager.setup();
+         PlatformManager.instance.setBattleManager(this._battleManager);
+         PlatformManager.instance.addEventListener(PlatformManager.EVT_MESSAGE,this._uiManager.battleUI.onPremiumItemConsume,false,0,true);
+         PlatformManager.instance.addEventListener(PlatformManager.EVT_EXALTED_HEROES,this._uiManager.onExaltedHeroesReceived,false,0,true);
+         BigNumberFormatter.userData = this._userData;
+         if(this._userData.platform == null)
+         {
+            this._userData.platform = UserData.WEB_PLATFORM;
+         }
+         setFrameBased(true);
+      }
+      
+      public function onTrackEvent(param1:GenericEvent) : void
+      {
+         var _loc2_:String = param1.parameters["name"];
+         var _loc3_:Object = param1.parameters["params"];
+         trace("Tracking event " + _loc2_);
+      }
+      
+      override protected function gameLoop(param1:Event = null) : void
+      {
+         super.gameLoop(param1);
+         var _loc2_:int = 1000 / 60;
+         TimeKeeper.instance.step(_loc2_);
+         EnterFrameSignaller.instance.dispatch();
+      }
+      
+      public function loadData() : void
+      {
+         if(this._isRunningOnWeb)
+         {
+            trace("trying to create static data bytearray");
+            this._staticDataByteArray = EmbedAssetManager.instance.getInstance("staticdata","data") as ByteArray;
+            this.onLoadedStaticData();
+         }
+         else
+         {
+            this._staticDataLoader = new DataLoader();
+            this._staticDataLoader.load("data/staticdata.txt",this.onLoadedStaticData);
+         }
+      }
+      
+      private function onLoadedUserData() : void
+      {
+         this._userData = SaveManager.userData;
+         this.onLoadedAllData();
+      }
+      
+      private function onLoadedStaticData() : void
+      {
+         this._staticData = new StaticData();
+         if(this._staticDataByteArray)
+         {
+            this._staticData.fromJson(this._staticDataByteArray.toString());
+         }
+         else
+         {
+            this._staticData.fromJson(this._staticDataLoader.data);
+         }
+         this._staticDataWrapper = new StaticDataWrapper(this._staticData);
+         StaticDataWrapper.instance = this._staticDataWrapper;
+         trace("static data loaded!");
+         SaveManager.loadData(this.onLoadedUserData);
+      }
+      
+      private function onLoadedAllData() : void
+      {
+         var _loc4_:Hero = null;
+         var _loc1_:Object = this._staticData.getAllAsObjects(Hero);
+         var _loc2_:Number = MiscUtils.lengthOfObject(_loc1_);
+         var _loc3_:Array = [];
+         for each(_loc4_ in this._userData.heroCollection.heroes)
+         {
+            if(_loc2_ > 20 && _loc4_.id > _loc2_)
+            {
+               _loc3_.push(_loc4_);
+            }
+         }
+         for each(_loc4_ in _loc3_)
+         {
+            this._userData.heroCollection.deleteHero(_loc4_.uid);
+         }
+         if(this._staticData && this._userData)
+         {
+            this.setup();
+            this.showMainMenu();
+            stage.dispatchEvent(new GenericEvent("ALL_DATA_LOADED"));
+         }
+      }
+      
+      public function playGame(param1:Event = null) : void
+      {
+         trace("dispatching ready");
+         stage.dispatchEvent(new GenericEvent("ready"));
+         this.loadAssets();
+      }
+      
+      private function loadAssets() : void
+      {
+         var _loc2_:Monster = null;
+         var _loc3_:Asset = null;
+         var _loc1_:Object = this._staticDataWrapper.getMonsters();
+         for each(_loc2_ in _loc1_)
+         {
+            _loc3_ = new Asset(_loc2_.assetId);
+            EmbedAssetManager.instance.addSwfLoader(_loc3_.fileName,_loc3_.folder);
+         }
+         EmbedAssetManager.instance.loadSwfs(this.onAssetsLoaded);
+      }
+      
+      private function onAssetsLoaded(param1:Event = null) : void
+      {
+         this._uiManager.showBattleScreen();
+         this._battleManager.setupBattle();
+         addChildAt(this._battleManager.display,0);
+         LanguageManager.init(this._userData,false);
+         if(this._userData.prevLoginTimestamp > 0)
+         {
+            this.doResumeFromPrevLogin();
+         }
+         this._battleManager.start();
+      }
+      
+      public function doResumeFromPrevLogin() : void
+      {
+         var _loc1_:Number = ServerTimeKeeper.instance.timestamp - this._userData.prevLoginTimestamp;
+         var _loc2_:Number = _loc1_ / 3600000;
+         var _loc3_:BigDecimal = this._userData.doTimeLapse(_loc2_,false);
+         var _loc4_:String = _("Welcome Back! While you were away, your heroes farmed %s Gold just for you!","{gold}");
+         _loc4_ = _loc4_.replace("{gold}",TextManager.textToColor(BigNumberFormatter.shortenNumber(_loc3_),"#FF9900"));
+         this._uiManager.popupManager.showWelcomeScreen(_loc4_,PatchNotes.getPatchNotes(PlatformManager.instance.isHomeEnabled,PlatformManager.instance.kongEnabled,PlatformManager.instance.miniclipEnabled,PlatformManager.instance.armorgamesEnabled,PlatformManager.instance.steamworksEnabled));
+      }
+      
+      private function registerConsoleCommands() : void
+      {
+         this._console.registerCommand("hide",this.hideConsole);
+         this._console.registerCommand("playMusic",this.playMusic);
+         this._console.registerCommand("stopMusic",this.stopMusic);
+         this._console.registerCommand("reset",this.reset);
+         this._console.registerCommand("save",this.save);
+         this._console.registerCommand("add",this.addResource);
+         this._console.registerCommand("json",this.jsonPrettyPrint);
+         this._console.registerCommand("unlock",this.unlock);
+         this._console.registerCommand("t",this.test);
+         this._console.registerCommand("tAll",this.testAll);
+         this._console.registerCommand("spawn",this.testSpawn);
+         this._console.registerCommand("levels",this.levelUpHeroes);
+         this._console.registerCommand("skip",this.skipZone);
+         this._console.registerCommand("unlockSkill",this.unlockSkill);
+         this._console.registerCommand("unlockSkills",this.unlockSkills);
+         this._console.registerCommand("time",this.time);
+         this._console.registerCommand("skipTime",this.skipTime);
+         this._console.registerCommand("gold",this.gold);
+         this._console.registerCommand("encrypt",this.encrypt);
+         this._console.registerCommand("decrypt",this.decrypt);
+         this._console.registerCommand("goldPurchase",this.goldPurchase);
+         this._console.registerCommand("doWait",this.doWait);
+         this._console.registerCommand("isPrimal",this.isPrimal);
+         this._console.registerCommand("cooldowns",this.cooldowns);
+         this._console.registerCommand("fromAntiCheat",this.fromAntiCheat);
+         this._console.registerCommand("toAntiCheat",this.toAntiCheat);
+         this._console.registerCommand("uid",this.uid);
+         this._console.registerCommand("passwordHash",this.passwordHash);
+         this._console.registerCommand("sprinkle",this.sprinkle);
+         this._console.registerCommand("unsprinkle",this.unsprinkle);
+         this._console.registerCommand("fix",this.fixUser);
+         this._console.registerCommand("upgrades",this.upgrades);
+         this._console.registerCommand("printFuckingText",this.printFuckingText);
+         this._console.registerCommand("testProb",this.testProb);
+         this._console.registerCommand("epic",this.testEpic);
+         this._console.registerCommand("quickAscend",this.quickAscend);
+         this._console.registerCommand("click",this.superClickDamage);
+         this._console.registerCommand("test3",this.test3);
+         this._console.registerCommand("probe",this.probeData);
+         this._console.registerCommand("purchaseAncient",this.purchaseAncient);
+         this._console.registerCommand("upgradeAncient",this.upgradeAncient);
+         this._console.registerCommand("upgradeAncientTo",this.upgradeAncientTo);
+         this._console.registerCommand("ancients",this.displayAncients);
+         this._console.registerCommand("t4",this.t4);
+         this._console.registerCommand("login",this.consoleLogin);
+         this._console.registerCommand("signup",this.consoleSignup);
+         this._console.registerCommand("t5",this.t5);
+         this._console.registerCommand("erase",this.eraseArmorGamesData);
+         this._console.registerCommand("allGilds",this.allGilds);
+         this._console.registerCommand("goto",this.gotoZone);
+         this._console.registerCommand("quickGild",this.quickGild);
+         this._console.registerCommand("TryHalt",this.haltGame);
+         this._console.registerCommand("track",this.tryTrack);
+         this._console.registerCommand("resetss",this.resetSteamStats);
+         this._console.registerCommand("t1",this.t1);
+         this._console.registerCommand("t2",this.t2);
+         this._console.registerCommand("t3",this.t3);
+         this._console.registerCommand("t7",this.t7);
+         this._console.registerCommand("t8",this.t8);
+         this._console.registerCommand("t9",this.t9);
+         this._console.registerCommand("t6",this.t6);
+         this._console.registerCommand("guild",this.testGuild);
+         this._console.registerCommand("additem",this.addItem);
+         this._console.registerCommand("sale",this.printSaleInformation);
+         this._console.registerCommand("startSale",this.startSale);
+         this._console.registerCommand("test",this.testStuff);
+         this._console.registerCommand("resetPwb",this.resetPwb);
+      }
+      
+      private function quickGild() : void
+      {
+         var _loc1_:Number = Number(this._console.getArguments()[0]);
+         this._userData.gildSpecificHero(_loc1_);
+      }
+      
+      private function allGilds() : void
+      {
+         var _loc4_:Hero = null;
+         var _loc5_:* = NaN;
+         var _loc1_:Number = Number(this._console.getArguments()[0]);
+         var _loc2_:Hero = this._userData.heroCollection.getById(_loc1_);
+         var _loc3_:Number = 1;
+         while(_loc3_ <= this._userData.numHeroes())
+         {
+            _loc4_ = this._userData.heroCollection.getById(_loc3_);
+            _loc5_ = _loc4_.epicLevel;
+            _loc2_.epicLevel = _loc2_.epicLevel + _loc5_;
+            _loc4_.epicLevel = 0;
+            _loc3_++;
+         }
+      }
+      
+      private function consoleLogin() : void
+      {
+         this._uiManager.popupManager.showLoginScreen();
+      }
+      
+      private function consoleSignup() : void
+      {
+         this._uiManager.popupManager.showSignupScreen();
+      }
+      
+      private function t1() : void
+      {
+         this._console.print("Collecting today\'s rewards");
+         this._userData.collectTodaysRaidRewards(10);
+      }
+      
+      private function t2() : void
+      {
+         this._console.print("Collecting yesterday\'s rewards");
+         this._userData.collectYesterdaysRaidRewards(10);
+      }
+      
+      private function t3() : void
+      {
+         var _loc1_:Number = this._console.getArguments()[0];
+         this._console.print(this._userData.getTitanReward(_loc1_,false,0.01)["heroSouls"]);
+      }
+      
+      private function t4() : void
+      {
+         var translationString:String = null;
+         var monsters:Object = null;
+         var monster:Monster = null;
+         var zones:Object = null;
+         var zone:Zone = null;
+         var ancients:Object = null;
+         var ancient:Ancient = null;
+         var i:int = 0;
+         var lang:String = null;
+         trace("Translations test");
+         translationString = "";
+         if(this._console.getArguments()[0] == "show")
+         {
+            _("show");
+         }
+         else if(this._console.getArguments()[0] == "load")
+         {
+            monsters = StaticData.instance.getAll(Monster);
+            for each(monster in monsters)
+            {
+               _(monster.name.toString());
+            }
+            zones = StaticData.instance.getAll(Zone);
+            for each(zone in zones)
+            {
+               _(zone.name.toString());
+            }
+            ancients = StaticData.instance.getAll(Ancient);
+            for each(ancient in ancients)
+            {
+               _(ancient.name.toString());
+               _(ancient.effectDescription.toString());
+               _(ancient.flavorText.toString());
+            }
+         }
+         else
+         {
+            if(this._console.getArguments().length > 0 && this._console.getArguments()[0] !== "-lang")
+            {
+               i = 0;
+               while(i < this._console.getArguments().length)
+               {
+                  translationString = translationString + this._console.getArguments()[i];
+                  if(i + 1 < this._console.getArguments().length)
+                  {
+                     translationString = translationString + " ";
+                  }
+                  i++;
+               }
+            }
+            else if(this._console.getArguments()[0] == "-lang")
+            {
+               this._console.print("Language Switch");
+               lang = this._console.getArguments()[1].toString();
+               LanguageManager.setLanguage(lang,this.userData);
+               translationString = "Language Changed";
+            }
+            else
+            {
+               translationString = "Empty String";
+            }
+            try
+            {
+               this._console.print(_("%s",translationString));
+               this._console.print(_("hello %d, world!",5));
+               this._console.print(_("hello, world!",5));
+               this._console.print(_("%d Comments",3));
+               this._console.print(_("%d Comment",1));
+               this._console.print(_("%d Comment",300));
+               return;
+            }
+            catch(err:Error)
+            {
+               trace("Translation Error: " + err.message);
+               return;
+            }
+         }
+      }
+      
+      private function haltGame() : void
+      {
+         this._uiManager.popupManager.showRefreshScreen("Your game timed out\nPlease Refresh the page.");
+      }
+      
+      private function t5() : void
+      {
+         PowerbloopPanel.TEST_WIN = true;
+      }
+      
+      private function purchaseAncient() : void
+      {
+         this._userData.ancients.purchaseAncient(this._console.getArguments()[0]);
+      }
+      
+      private function upgradeAncient() : void
+      {
+         this._userData.ancients.upgradeAncient(this._console.getArguments()[0]);
+      }
+      
+      private function upgradeAncientTo() : void
+      {
+         var _loc1_:* = NaN;
+         var _loc2_:* = NaN;
+         var _loc3_:Ancient = null;
+         if(this._console.getArguments().length > 1)
+         {
+            _loc1_ = Number(this._console.getArguments()[0]);
+            _loc2_ = Number(this._console.getArguments()[1]);
+            if(!this._userData.ancients.hasAncientWithLevel(_loc2_,0))
+            {
+               throw new Error("We don\'t have Ancient \'" + _loc2_ + "\'");
+            }
+            _loc3_ = this._userData.ancients.ancients[_loc2_];
+            _loc3_.level = _loc1_;
+            this._console.print("ancient id: " + _loc2_ + " level: " + _loc1_);
+         }
+      }
+      
+      private function displayAncients() : void
+      {
+         var _loc2_:* = undefined;
+         var _loc3_:Ancient = null;
+         var _loc1_:Ancients = this._userData.ancients;
+         for(_loc2_ in _loc1_.ancients)
+         {
+            _loc3_ = _loc1_.ancients[_loc2_];
+            this._console.print(_loc3_.name + " level " + _loc3_.level);
+         }
+      }
+      
+      private function test3() : void
+      {
+         var _loc2_:* = undefined;
+         var _loc3_:Hero = null;
+         var _loc4_:* = undefined;
+         var _loc1_:Object = UserData.heroLateGameUpgrades;
+         for(_loc2_ in _loc1_)
+         {
+            _loc3_ = this._userData.heroCollection.getById(_loc2_);
+            for(_loc4_ in _loc1_[_loc2_])
+            {
+               if(_loc3_.level >= Number(_loc4_) * 25 + 200)
+               {
+                  _loc3_.damageMultiplier = _loc3_.damageMultiplier.multiply(_loc1_[_loc2_][_loc4_]);
+                  trace(_loc3_.name + " " + _loc1_[_loc2_][_loc4_]);
+                  continue;
+               }
+               break;
+            }
+         }
+      }
+      
+      private function testAll() : void
+      {
+         var _loc1_:String = this._userData.toJson();
+         var _loc2_:* = "\\" + "\"";
+         _loc1_ = _loc1_.replace(new RegExp(new RegExp("\\\"","g")),_loc2_);
+         _loc1_ = _loc1_.replace(new RegExp(new RegExp("\\\\\"","g")),"\"");
+         trace(_loc1_);
+         this._userData.fromJson(_loc1_);
+         trace(this._userData.gold);
+         MiniclipAPIWrapper.instance.deleteStorage();
+      }
+      
+      private function fixUser() : void
+      {
+         this._userData.epicHeroSeed = Math.abs(this._userData.epicHeroSeed);
+      }
+      
+      private function sprinkle() : void
+      {
+         this._console.print(ImportScreen.sprinkle(this._console.getArguments()[0]));
+      }
+      
+      private function unsprinkle() : void
+      {
+         this._console.print(ImportScreen.unSprinkle(this._console.getArguments()[0]));
+      }
+      
+      private function fromAntiCheat() : void
+      {
+         this._console.print(ImportScreen.fromAntiCheatFormat(this._console.getArguments()[0]));
+      }
+      
+      private function toAntiCheat() : void
+      {
+         this._console.print(ImportScreen.toAntiCheatFormat(this._console.getArguments()[0]));
+      }
+      
+      private function uid() : void
+      {
+         this._console.print(this._userData.getUniqueId());
+      }
+      
+      private function passwordHash() : void
+      {
+         this._console.print(this._userData.getPasswordHash());
+      }
+      
+      private function doWait() : void
+      {
+         this._userData.doTimeLapse();
+      }
+      
+      private function cooldowns() : void
+      {
+         this._userData.skillCooldowns = {};
+         this.unlockSkills();
+      }
+      
+      private function isPrimal() : void
+      {
+         var _loc1_:Number = Number(this._console.getArguments()[0]);
+         this._console.print(this._userData.isPrimalLevel(_loc1_) + " would reward " + this._userData.getPrimalHeroSoulRewards(_loc1_) + " Hero Souls");
+      }
+      
+      private function showPrimals() : void
+      {
+         var _loc1_:* = "";
+         var _loc2_:Number = 100;
+         while(_loc2_ < 300)
+         {
+            _loc1_ = _loc1_ + (this._userData.isPrimalLevel(_loc2_)?"1":"0");
+            _loc2_ = _loc2_ + 5;
+         }
+         this._console.print(_loc1_);
+         this._userData.finalUpgrade("");
+      }
+      
+      private function goldPurchase() : void
+      {
+         this._console.print(this._userData.getPurchaseGoldAmount());
+      }
+      
+      private function encrypt() : void
+      {
+      }
+      
+      private function decrypt() : void
+      {
+      }
+      
+      private function gold() : void
+      {
+         var _loc1_:* = undefined;
+         for(_loc1_ in this._userData.goldEachSecond)
+         {
+            this._console.print(_loc1_ + ", " + this._userData.goldEachSecond[_loc1_]);
+         }
+         this._console.print(this._userData.getGoldInLastMinute());
+      }
+      
+      private function time() : void
+      {
+         this._console.print("ServerTimeKeeper: " + ServerTimeKeeper.instance.timestamp);
+         this._console.print("Tofixed(): " + ServerTimeKeeper.instance.timestamp.toFixed());
+         this._console.print("Userdata created at: " + this._userData.creationTimestamp);
+         this._console.print("Hours played(): " + ((ServerTimeKeeper.instance.timestamp - this._userData.creationTimestamp) / 3600000).toFixed(2));
+      }
+      
+      private function skipTime() : void
+      {
+         var _loc4_:* = NaN;
+         var _loc1_:Number = Number(this._console.getArguments()[0]);
+         this._console.print("Skipping " + _loc1_ + " seconds.");
+         _loc1_ = _loc1_ * 1000;
+         var _loc2_:Monster = new Monster();
+         _loc2_.id = 1;
+         var _loc3_:BigDecimal = Formulas.instance.monsterGoldFormula1(_loc2_);
+         var _loc5_:BigDecimal = this._userData.attributes.currentAttack;
+         var _loc6_:BigDecimal = Formulas.instance.monsterLifeFormula1(_loc2_);
+         ServerTimeKeeper.instance.wait(_loc1_);
+      }
+      
+      private function unlockSkill() : void
+      {
+         var _loc1_:Number = Number(this._console.getArguments()[0]);
+         this._userData.unlockSkill(_loc1_);
+      }
+      
+      private function unlockSkills() : void
+      {
+         var _loc1_:Number = 1;
+         while(_loc1_ <= ActionBar.NUM_ACTION_BUTTONS)
+         {
+            this._userData.unlockSkill(_loc1_);
+            _loc1_++;
+         }
+      }
+      
+      private function skipZone() : void
+      {
+         var _loc1_:Number = 0;
+         while(_loc1_ < 10)
+         {
+            this._userData.addGold(new BigDecimal(this._userData.getMonsterReward(this.battleManager.curMonster)));
+            _loc1_++;
+         }
+         this._userData.completeZone(this._userData.zoneManager.curZone);
+      }
+      
+      private function levelUpHeroes() : void
+      {
+         var _loc1_:Hero = null;
+         var _loc2_:* = NaN;
+         for each(_loc1_ in this._userData.heroCollection.heroes)
+         {
+            _loc2_ = 0;
+            while(_loc2_ < 100)
+            {
+               this._userData.levelHero(_loc1_,true);
+               _loc2_++;
+            }
+         }
+      }
+      
+      private function unlock() : void
+      {
+         if(this._console.getArguments().length > 0)
+         {
+            this._userData.highestFinishedZone = this._console.getArguments()[0];
+         }
+         else
+         {
+            this._userData.highestFinishedZone = 300;
+         }
+         if(this._userData.highestFinishedZonePersist < this._userData.highestFinishedZone)
+         {
+            this._userData.highestFinishedZonePersist = this._userData.highestFinishedZone;
+         }
+         this._userData.zoneManager.curZone.complete();
+         this._userData.zoneManager.populate();
+      }
+      
+      private function hideConsole() : void
+      {
+         this._console.hide();
+      }
+      
+      private function onKeyboardUp(param1:KeyboardEvent) : void
+      {
+         if(this.loginSignupScreensOff())
+         {
+            if(param1.keyCode == 16)
+            {
+               this._userData.shiftEnabled = false;
+            }
+            if(param1.keyCode == 17)
+            {
+               this._userData.ctrlEnabled = false;
+            }
+            if(param1.keyCode == 90)
+            {
+               this._userData.zKeyEnabled = false;
+            }
+            if(param1.keyCode == 81)
+            {
+               this._userData.qKeyEnabled = false;
+            }
+         }
+      }
+      
+      private function onKeyboardDown(param1:KeyboardEvent) : void
+      {
+         var _loc3_:Object = null;
+         var _loc2_:Number = 0;
+         if(this._console && !this._console.visible && this.loginSignupScreensOff())
+         {
+            if(param1.keyCode >= 49 && param1.keyCode <= 57)
+            {
+               _loc2_ = param1.keyCode - 48;
+            }
+            if(param1.keyCode >= 96 && param1.keyCode <= 105)
+            {
+               _loc2_ = param1.keyCode - 96;
+            }
+            if(param1.keyCode == 65)
+            {
+               if(this._battleManager && this._battleManager.uiManager && this._battleManager.uiManager.battleUI)
+               {
+                  this._battleManager.uiManager.battleUI.onProgressionClick(null);
+               }
+            }
+         }
+         if(_loc2_ && this._battleManager && this._battleManager.uiManager && this._battleManager.uiManager.battleUI)
+         {
+            _loc3_ = {};
+            _loc3_.target = this._battleManager.uiManager.battleUI.actionBar.getActionButtonInPosition(_loc2_);
+            this._battleManager.uiManager.battleUI.actionBar.onActionClick(_loc3_);
+         }
+         if(param1.keyCode == 192)
+         {
+            if(!param1.shiftKey && !param1.ctrlKey && !this._isRunningOnWeb || this._userData.debug)
+            {
+               this._console.toggle();
+            }
+         }
+         else if(param1.keyCode == 68 && this.loginSignupScreensOff())
+         {
+            if(param1.ctrlKey)
+            {
+            }
+         }
+         else if(param1.keyCode == 16 && this.loginSignupScreensOff())
+         {
+            if(this._userData)
+            {
+               this._userData.toggle = 0;
+               this._userData.shiftEnabled = true;
+            }
+         }
+         else if(param1.keyCode == 17 && this.loginSignupScreensOff())
+         {
+            if(this._userData)
+            {
+               this._userData.toggle = 0;
+               this._userData.ctrlEnabled = true;
+            }
+         }
+         else if(param1.keyCode == 90 && this.loginSignupScreensOff())
+         {
+            this._userData.toggle = 0;
+            this._userData.zKeyEnabled = true;
+         }
+         else if(param1.keyCode == 81 && this.loginSignupScreensOff())
+         {
+            this._userData.toggle = 0;
+            this._userData.qKeyEnabled = true;
+         }
+         else if(param1.keyCode == 84 && this.loginSignupScreensOff())
+         {
+            if(this._userData.toggle == 1)
+            {
+               this._userData.toggle = 2;
+            }
+            else if(this._userData.toggle == 2)
+            {
+               this._userData.toggle = 3;
+            }
+            else if(this._userData.toggle == 3)
+            {
+               this._userData.toggle = 4;
+            }
+            else if(this._userData.toggle == 4)
+            {
+               this._userData.toggle = 0;
+            }
+            else
+            {
+               this._userData.toggle = 1;
+            }
+         }
+      }
+      
+      public function showMainMenu() : void
+      {
+         this._uiManager.showMainMenu();
+      }
+      
+      public function playMusic() : void
+      {
+      }
+      
+      public function stopMusic() : void
+      {
+      }
+      
+      public function upgrades() : void
+      {
+         this._userData.buyAllAvailableUpgrades();
+      }
+      
+      private function printFuckingText() : void
+      {
+         this._console.print(this._fuckingText);
+      }
+      
+      private function test() : void
+      {
+         var _loc6_:* = 0;
+         var _loc9_:* = undefined;
+         var _loc10_:BigDecimal = null;
+         SaveManager.reset();
+         if(this._console.getArguments().length > 0)
+         {
+            this._console.print("Specific hero");
+            this._currentHero = this._console.getArguments()[0];
+         }
+         this._userData.numberDisplayMode = true;
+         var _loc1_:Number = this._currentHero;
+         var _loc2_:Object = this._userData.heroCollection.heroes;
+         var _loc3_:Hero = _loc2_[_loc1_];
+         this._currentHero++;
+         var _loc4_:* = "";
+         var _loc5_:Array = [];
+         _loc4_ = "totals, ";
+         _loc6_ = 0;
+         while(_loc6_ < 62)
+         {
+            _loc5_[_loc6_] = BigNumberFormatter.shortenNumber(Math.pow(10,_loc6_ * 5 + 8)).replace(",","");
+            _loc6_++;
+         }
+         _loc4_ = _loc4_ + (", " + _loc5_.join(", "));
+         this._console.print(_loc4_);
+         if(this._fuckingText == "")
+         {
+            this._fuckingText = this._fuckingText + (_loc4_ + "\n");
+         }
+         _loc5_ = [];
+         _loc6_ = 0;
+         while(_loc6_ < 62)
+         {
+            _loc5_[_loc6_] = Math.pow(10,_loc6_ * 5 + 8);
+            _loc6_++;
+         }
+         _loc4_ = _loc3_.id + ":" + _loc3_.name.replace(",","") + ", ";
+         var _loc7_:Number = 0;
+         var _loc8_:BigDecimal = new BigDecimal(0);
+         for(_loc9_ in _loc5_)
+         {
+            while(_loc8_.ltN(_loc5_[_loc9_]))
+            {
+               _loc8_ = _loc8_.add(_loc3_.currentCost);
+               if(_loc8_.ltN(_loc5_[_loc9_]))
+               {
+                  this._userData.levelHero(_loc3_,true);
+               }
+               _loc7_++;
+            }
+            this._userData.attributes.recalculate();
+            _loc10_ = _loc3_.currentAttack;
+            _loc4_ = _loc4_ + (", " + _loc3_.level + ": " + BigNumberFormatter.shortenNumber(_loc10_).replace(",",""));
+         }
+         this._console.print(_loc4_);
+         this._fuckingText = this._fuckingText + (_loc4_ + "\n");
+      }
+      
+      private function onNetLoadProgress(param1:BulkProgressEvent) : void
+      {
+         trace("onNetLoadProgress",param1.itemsLoaded / param1.itemsTotal);
+      }
+      
+      private function onLoadComplete(param1:Event) : void
+      {
+      }
+      
+      private function reset() : void
+      {
+         SaveManager.reset();
+      }
+      
+      private function save() : void
+      {
+         SaveManager.save();
+      }
+      
+      private function addResource() : void
+      {
+         var _loc1_:String = this._console.getArguments()[0];
+         var _loc2_:Number = Number(this._console.getArguments()[1] as String);
+         var _loc3_:BigDecimal = new BigDecimal(this._console.getArguments()[1] as String);
+         switch(_loc1_)
+         {
+            case "gold":
+               if(_loc2_ == 0)
+               {
+                  this._userData.addGold(this._userData.gold.multiply(new BigDecimal(-1)));
+               }
+               this._userData.addGold(_loc3_);
+               break;
+            case "soul":
+               this._userData.addSouls(_loc2_);
+               break;
+            case "core":
+               this._userData.addSalvagePoints(_loc2_);
+               break;
+            case "ruby":
+               this._userData.addRubies(_loc2_,"console_cheat",0);
+               break;
+            case "titanDamage":
+               this._userData.titanDamage = this._userData.titanDamage + _loc2_;
+               break;
+            default:
+               this._console.print("Adds stuff. Changes will not be saved to the server. Example:\n");
+               this._console.print("add gold` 2");
+               return;
+         }
+         this._console.print("Added " + _loc2_ + " " + _loc1_);
+      }
+      
+      private function jsonPrettyPrint() : void
+      {
+         var _loc4_:String = null;
+         var _loc5_:Object = null;
+         var _loc6_:String = null;
+         var _loc7_:JSONEncoder = null;
+         var _loc8_:String = null;
+         var _loc1_:* = this._userData;
+         var _loc2_:* = this._userData;
+         var _loc3_:* = "userData";
+         for each(_loc4_ in this._console.getArguments())
+         {
+            if(_loc4_ == "*")
+            {
+               this._console.print("Fields in " + _loc3_ + ":");
+               if(_loc2_ is Model)
+               {
+                  for(_loc6_ in (_loc2_ as Model).getFields())
+                  {
+                     this._console.print(_loc6_);
+                  }
+                  return;
+               }
+               this._console.print("dunno what\'s wrong with that object, it\'s not a model");
+            }
+            if(_loc1_.hasOwnProperty(_loc4_))
+            {
+               _loc1_ = _loc1_[_loc4_];
+            }
+            else
+            {
+               this._console.print("\'" + _loc3_ + "\' does not have property \'" + _loc4_ + "\'");
+            }
+            _loc3_ = _loc4_;
+            _loc2_ = _loc1_;
+         }
+         if(_loc1_ is Model)
+         {
+            _loc5_ = new JSONDecoder(_loc1_.toJson(),true).getValue();
+            _loc7_ = new JSONEncoder(_loc5_,true,30);
+            _loc8_ = _loc7_.getString();
+            System.setClipboard(_loc8_);
+            this._console.print(_loc8_);
+         }
+         else
+         {
+            this._console.print(_loc1_);
+         }
+      }
+      
+      private function testSpawn() : void
+      {
+         var _loc1_:Number = this._console.getArguments()[0];
+         Zone.TEST_MONSTER = _loc1_;
+      }
+      
+      private function onStageAdded(param1:Event) : void
+      {
+         var e:Event = param1;
+         trace("on stage added!!",stage);
+         if(CapabilitiesChecker.isDesktop())
+         {
+            stage.color = 0;
+         }
+         removeEventListener(Event.ADDED_TO_STAGE,this.onStageAdded);
+         this._console = new Console();
+         this._console.init(stage.stageWidth,stage.stageHeight,stage);
+         this.registerConsoleCommands();
+         stage.addEventListener(KeyboardEvent.KEY_DOWN,this.onKeyboardDown,false,0,true);
+         stage.addEventListener(KeyboardEvent.KEY_UP,this.onKeyboardUp,false,0,true);
+         stage.addEventListener(Event.DEACTIVATE,this.onAppDeactivated);
+         stage.addEventListener(Event.ACTIVATE,this.onAppActivated);
+         stage.addEventListener(Event.FULLSCREEN,this.onFullScreen);
+         GAnalyticsManager.instance.init(this,"UA-52145963-2",false);
+         flashVars = stage.loaderInfo.parameters;
+         trace("flashVars siteName",stage.loaderInfo.parameters.siteName);
+         HeroClickerBitmapManager.instance.stage = stage;
+         this.tabChildren = false;
+         CheatManager.getInstance().init(stage);
+         PlatformManager.instance.init(stage,this._isRunningOnWeb);
+         GAnalyticsManager.instance.trackPageview("/" + PlatformManager.instance.getName());
+         try
+         {
+            ServerTimeKeeper.synchronize(this.onTimeServerReady,TIMESTAMP_URL,0,false,this.onTimeServerError);
+            return;
+         }
+         catch(e:SecurityError)
+         {
+            onTimeServerError();
+            return;
+         }
+      }
+      
+      private function onTimeServerReady() : void
+      {
+         trace("on TimeServerReady",ServerTimeKeeper.instance.timestamp);
+         this.loadData();
+      }
+      
+      private function onTimeServerError() : void
+      {
+         trace(this,"onTimeServerError");
+         ServerTimeKeeper.synchronize(this.onTimeServerReady,"",0,true,this.onTimeServerError);
+      }
+      
+      private function onAppActivated(param1:Event) : void
+      {
+         trace(this,"=== onAppActivated ===");
+      }
+      
+      private function onAppDeactivated(param1:Event) : void
+      {
+         if(this._userData)
+         {
+            this._userData.shiftEnabled = false;
+            this._userData.ctrlEnabled = false;
+            this._userData.zKeyEnabled = false;
+            this._userData.qKeyEnabled = false;
+         }
+      }
+      
+      private function onFullScreen(param1:Event) : void
+      {
+      }
+      
+      private function sizeToFit() : void
+      {
+         var _loc1_:* = NaN;
+         trace("stageWidth",stage.stageWidth,stage.stageHeight);
+         if(stage.stageWidth < 1136)
+         {
+            _loc1_ = stage.stageWidth / 1136;
+            this._uiManager.display.scaleX = _loc1_;
+            this._uiManager.display.scaleY = _loc1_;
+            this._battleManager.display.scaleX = _loc1_;
+            this._battleManager.display.scaleY = _loc1_;
+         }
+      }
+      
+      private function testProb() : void
+      {
+         var _loc3_:Object = null;
+         var _loc4_:* = 0;
+         var _loc5_:* = 0;
+         var _loc1_:Random = new Random();
+         _loc1_.seed = Rnd.integer(0,99999);
+         var _loc2_:* = 0;
+         while(_loc2_ < 100)
+         {
+            _loc3_ = {};
+            _loc4_ = 0;
+            while(_loc4_ < 999)
+            {
+               _loc5_ = _loc1_.weightedChoice([10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]);
+               _loc3_[_loc5_] = 1;
+               if(Search.countObject(_loc3_) == 25)
+               {
+                  this._console.print("got all: " + _loc4_);
+                  _loc4_ = 1000;
+               }
+               _loc4_++;
+            }
+            _loc2_++;
+         }
+      }
+      
+      private function testEpic() : void
+      {
+         var _loc1_:Number = 30;
+         if(this._console.getArguments().length > 0)
+         {
+            _loc1_ = Number(this._console.getArguments()[0]);
+         }
+         var _loc2_:* = 0;
+         while(_loc2_ < _loc1_)
+         {
+            PlatformManager.instance.processConsumeItem("heropack1");
+            _loc2_++;
+         }
+      }
+      
+      public function quickAscend() : void
+      {
+         this._userData.quickAscend();
+      }
+      
+      private function superClickDamage() : void
+      {
+         this.userData.instaClickKill = !this._userData.instaClickKill;
+         this._console.print("instaClickKill: " + this.userData.instaClickKill);
+      }
+      
+      private function probeData() : void
+      {
+         this._console.printObject(this._userData.purchaseRecord);
+      }
+      
+      private function eraseArmorGamesData() : void
+      {
+         ArmorGamesAPIWrapper.instance.erasePrivateData("userData");
+      }
+      
+      private function gotoZone() : void
+      {
+         var _loc1_:int = Number(this._console.getArguments()[0]);
+         this._uiManager.battleUI.mainPanel.battlePanel.zoneSelector.selectById(_loc1_);
+      }
+      
+      private function tryTrack() : void
+      {
+         GameAnalyticsManager.instance.trackSale("test",1);
+      }
+      
+      private function loginSignupScreensOff() : Boolean
+      {
+         return !this._uiManager.popupManager.popupExists("Login") && !this._uiManager.popupManager.popupExists("Signup");
+      }
+      
+      private function resetSteamStats() : void
+      {
+         SteamworksManager(PlatformManager.instance.currentPlatform).resetStats();
+      }
+      
+      private function t7() : void
+      {
+         trace(SteamworksAPIWrapper.instance.mtxUserCountry,SteamworksAPIWrapper.instance.mtxUserCurrency);
+         SteamworksAPIWrapper.instance.initPurchaseItem(1,1,200,"item 1");
+      }
+      
+      private function t8() : void
+      {
+         trace("isAchievement",SteamworksAPIWrapper.instance.isAchievement("HIGHEST_ZONE_10"));
+         trace("stat",SteamworksAPIWrapper.instance.getStatInt("highest_zone"));
+      }
+      
+      private function t9() : void
+      {
+         this._userData.items.salvageAllJunk();
+      }
+      
+      private function t6() : void
+      {
+         var _loc3_:* = 0;
+         var _loc4_:* = 0;
+         var _loc5_:* = undefined;
+         var _loc6_:* = NaN;
+         var _loc9_:Array = null;
+         var _loc10_:String = null;
+         var _loc1_:BigDecimal = new BigDecimal("1e500");
+         var _loc2_:BigDecimal = new BigDecimal("1e300");
+         StopWatch.start("divide");
+         _loc3_ = 0;
+         _loc4_ = 10000;
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = _loc1_.divide(_loc2_);
+            _loc3_++;
+         }
+         StopWatch.stop("divide");
+         StopWatch.start("divide");
+         _loc3_ = 0;
+         _loc4_ = 10000;
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = _loc1_.divide(_loc2_);
+            _loc3_++;
+         }
+         StopWatch.stop("divide");
+         StopWatch.start("multiply");
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = new BigDecimal("1e500").multiply(new BigDecimal("1e300"));
+            _loc3_++;
+         }
+         StopWatch.stop("multiply");
+         StopWatch.start("add");
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = new BigDecimal("1e500").add(new BigDecimal("1e300"));
+            _loc3_++;
+         }
+         StopWatch.stop("add");
+         StopWatch.start("gte");
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = new BigDecimal("1e500").gte(new BigDecimal("1e20"));
+            _loc3_++;
+         }
+         StopWatch.stop("gte");
+         StopWatch.start("gte");
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = new BigDecimal("1e500").gte(new BigDecimal(1.0E21));
+            _loc3_++;
+         }
+         StopWatch.stop("gte");
+         StopWatch.start("constructor");
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = new BigDecimal("1e50");
+            _loc3_++;
+         }
+         StopWatch.stop("constructor");
+         StopWatch.start("constructor2");
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc5_ = new BigDecimal("1e+50");
+            _loc3_++;
+         }
+         StopWatch.stop("constructor2");
+         StopWatch.start("cache");
+         var _loc7_:BigDecimal = new BigDecimal(0);
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc9_ = ["dodivide",_loc7_,"i",_loc7_,null,-1];
+            _loc3_++;
+         }
+         StopWatch.stop("cache");
+         StopWatch.start("second cache");
+         var _loc8_:Array = [];
+         _loc3_ = 0;
+         while(_loc3_ < _loc4_)
+         {
+            _loc10_ = String("dodivide" + _loc3_ + _loc3_);
+            if(_loc8_[_loc10_] == null)
+            {
+            }
+            _loc3_++;
+         }
+         StopWatch.stop("second cache");
+      }
+      
+      private function testGuild() : void
+      {
+         var loadingScreening:* = undefined;
+         if(this._console.getArguments())
+         {
+            switch(this._console.getArguments()[0])
+            {
+               case "updateInfo":
+                  this._battleManager.guildManager.loadGuildInfo(null);
+                  break;
+            }
+         }
+         if(this._console.getArguments() && this._console.getArguments().length > 1)
+         {
+            if(this._console.getArguments()[0] == "getDefeatedTitan")
+            {
+               this._console.print(this._userData.getDefeatedTitan(this._console.getArguments()[1]));
+            }
+            else if(this._console.getArguments()[0] == "setDefeatedTitan" && this._console.getArguments()[1] && this._console.getArguments()[2])
+            {
+               this._userData.setDefeatedTitan(this._console.getArguments()[1],this._console.getArguments()[2]);
+            }
+            else if(this._console.getArguments()[0] == "-s")
+            {
+               switch(this._console.getArguments()[1].toString())
+               {
+                  case "main":
+                     this._uiManager.battleUI.mainPanel.clanPanel.showMainScreen();
+                     break;
+                  case "msgboard":
+                     this._uiManager.battleUI.mainPanel.clanPanel.showMessageBoardScreen();
+                     break;
+                  case "raid":
+                     this._uiManager.battleUI.mainPanel.clanPanel.showRaidScreen();
+                     break;
+                  case "craid":
+                     this._uiManager.battleUI.mainPanel.clanPanel.showCollectRubyScreen();
+                     break;
+                  case "found":
+                     break;
+                  case "nfound":
+                     break;
+                  case "create":
+                     break;
+                  case "name":
+                     break;
+                  case "select":
+                     break;
+                  case "request":
+                     break;
+                  case "find":
+                     break;
+                  case "rewards":
+                     break;
+                  case "options":
+                     break;
+                  case "assign":
+                     break;
+                  case "cerror":
+                     break;
+                  case "exist":
+                     this._uiManager.popupManager.showMessage("Sorry, but the guild name\nLob City\nhas already been taken.",function(param1:*):*
+                     {
+                        trace("ok clicked");
+                     },"(you did not lose any rubies)");
+                     break;
+                  case "members":
+                     break;
+                  case "kick":
+                     break;
+                  case "mrequest":
+                     break;
+                  case "nrequest":
+                     this._uiManager.popupManager.showMessage("You have no requests to join your guild.\nWhen players request to join, you will\n see their requests here.",function(param1:*):*
+                     {
+                     });
+                     break;
+                  case "load":
+                     this._uiManager.popupManager.showLoadingScreen();
+                     break;
+               }
+               if(this._console.getArguments()[1].toString() == "r" && this._console.getArguments()[2])
+               {
+                  switch(this._console.getArguments()[2].toString())
+                  {
+                     case "load":
+                        loadingScreening = this._uiManager.popupManager.getPopup("loadingScreen");
+                        if(loadingScreening)
+                        {
+                           this._uiManager.popupManager.remove(loadingScreening);
+                        }
+                        break;
+                  }
+               }
+            }
+            if(this._console.getArguments()[0] == "-m")
+            {
+               switch(this._console.getArguments()[1].toString())
+               {
+                  case "updatep":
+                     trace("updatep");
+                     this._battleManager.guildManager.updatePlayer();
+                     break;
+                  case "switchp":
+                     trace("switchp");
+                     if(this._console.getArguments().length == 4)
+                     {
+                        this._console.print("old uniqueId: " + this._userData.uniqueId);
+                        this._console.print("old passwordHash: " + this._userData.passwordHash);
+                        this._userData.uniqueId = this._console.getArguments()[2];
+                        this._userData.passwordHash = this._console.getArguments()[3];
+                        this._console.print("new uniqueId: " + this._userData.uniqueId);
+                        this._console.print("new passwordHash: " + this._userData.passwordHash);
+                     }
+                     break;
+               }
+            }
+            if(this._console.getArguments()[0] == "-t" && this._console.getArguments()[1].toString() == "on")
+            {
+               this._uiManager.battleUI.mainPanel._typedDisplay.tab5.visible = true;
+            }
+         }
+      }
+      
+      private function addItem() : void
+      {
+         var _loc1_:* = 1;
+         if(this._console.getArguments().length >= 1)
+         {
+            _loc1_ = this._console.getArguments()[0];
+         }
+         var _loc2_:* = 0;
+         while(_loc2_ < _loc1_)
+         {
+            this._userData.items.addItem(this._userData.items.getNextAscensionItem());
+            _loc2_++;
+         }
+         this._console.print("added random item");
+      }
+      
+      private function printSaleInformation() : void
+      {
+         var _loc1_:* = "Sale #: ";
+         _loc1_ = _loc1_ + ("" + this._userData.personalSales._numHistoricSales);
+         if(this._userData.personalSales.isOnSale())
+         {
+            _loc1_ = _loc1_ + ("\nSale is active for " + this._userData.personalSales.getRemainingSaleTimeInSeconds() + " more seconds");
+         }
+         else
+         {
+            _loc1_ = _loc1_ + ("\nSale will start in " + this._userData.personalSales.getSecondsUntilNextSale() + "seconds");
+         }
+         this._console.print(_loc1_);
+      }
+      
+      private function startSale() : void
+      {
+         this._userData.personalSales._saleEndTimestamp = Math.round(ServerTimeKeeper.instance.timestamp / 1000) + 390;
+      }
+      
+      private function testStuff() : void
+      {
+      }
+      
+      private function resetPwb() : void
+      {
+         this._userData.persistentVars.pwbClosest = 0;
+         this._userData.persistentVars.pwbPlayed = 0;
+         this._userData.persistentVars.pwbWon = 0;
+         this._userData.persistentVars.bloopCoins = 0;
+         this._userData.persistentVars.karma = 0;
+         this._userData.persistentVars.bloopCoinRequestDonationTimestamp = 0;
+      }
+   }
+}
