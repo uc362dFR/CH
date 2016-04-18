@@ -13,7 +13,7 @@
 		},
 		"2": {
 			"iconId": 3,
-			"levelCostFormula": "one",
+			"levelCostFormula": "linear10th",
 			"maxLevel": 150,
 			"effectDescription": "-%1% Ancient cost.",
 			"name": "Chor'gorloth",
